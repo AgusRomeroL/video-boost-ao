@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,11 +93,16 @@ private fun MainScreen() {
 
     var serviceEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
     var featureEnabled by remember { mutableStateOf(Prefs.featureEnabled(context)) }
+    var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
     LifecycleResumeEffect(Unit) {
         serviceEnabled = isAccessibilityServiceEnabled(context)
         featureEnabled = Prefs.featureEnabled(context)
         onPauseOrDispose { }
+    }
+
+    LaunchedEffect(Unit) {
+        update = UpdateChecker.check(context)
     }
 
     Scaffold { innerPadding ->
@@ -108,6 +114,8 @@ private fun MainScreen() {
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            update?.let { UpdateCard(it) }
+
             HeroCard(serviceEnabled = serviceEnabled, featureEnabled = featureEnabled)
 
             MasterSwitchCard(
@@ -328,6 +336,38 @@ private fun NumberedStep(number: Int, text: String) {
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
+    }
+}
+
+@Composable
+private fun UpdateCard(update: UpdateChecker.Update) {
+    val context = LocalContext.current
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.update_available, update.versionName),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(12.dp))
+            FilledTonalButton(onClick = {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.pageUrl)))
+            }) {
+                Text(stringResource(R.string.btn_download_update))
+            }
+        }
     }
 }
 
