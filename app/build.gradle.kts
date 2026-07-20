@@ -20,8 +20,8 @@ android {
         applicationId = "com.agustin.videoboostao"
         minSdk = 33
         targetSdk = 36
-        versionCode = 4
-        versionName = "2.2"
+        versionCode = 5
+        versionName = "2.3"
     }
 
     signingConfigs {
@@ -65,7 +65,7 @@ dependencies {
     implementation(composeBom)
     // Material 3 estable (1.4.0 via BOM). El look Expressive se logra con
     // color dinamico (Material You), formas extra-grandes y espaciado
-    // generoso — todo API publica aqui. MaterialExpressiveTheme (el envoltorio
+    // generoso; todo API publica aqui. MaterialExpressiveTheme (el envoltorio
     // formal) solo es publico en 1.5.0-alpha, que exige AGP 9.1+.
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")

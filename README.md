@@ -74,10 +74,12 @@ touching accessibility settings, and checks GitHub for **updates** on launch
 
 ## Screenshots
 
-| Setup needed | Enabling the service | Active |
+| Guided setup | Accessibility, highlighted | Active |
 |:---:|:---:|:---:|
-| ![Setup guide](docs/screenshot-setup.png) | ![Accessibility highlighted](docs/screenshot-accessibility-highlight.png) | ![Active](docs/screenshot-active.png) |
-| The guide stays available; it is expanded until the service is on. | "Open Accessibility settings" jumps straight to your entry, **highlighted**. | Once enabled, the guide collapses to a checkmark you can reopen anytime. |
+| ![Guided setup](docs/tutorial-1-setup.png) | ![Accessibility highlighted](docs/tutorial-2-accessibility.png) | ![Active](docs/tutorial-5-active.png) |
+| A guided card walks you through the two permissions. | "Open Accessibility settings" jumps straight to your entry, **highlighted**. | Once enabled, the guide collapses to a checkmark you can reopen anytime. |
+
+Full walkthrough with the "restricted setting" flow: **[install & setup tutorial](docs/TUTORIAL.md)**.
 
 ## Enabling the accessibility service (step by step)
 
