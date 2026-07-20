@@ -20,6 +20,11 @@ it found it. The whole sequence takes about half a second.
 
 ## Install
 
+New here, or sharing the app with someone? See the
+**[visual install & setup tutorial](docs/TUTORIAL.md)**. It covers the two
+normal warnings (Play Protect and "restricted setting") with screenshots, and
+includes a short blurb you can forward to whoever you send the app to.
+
 ### Recommended: Obtainium (automatic updates)
 
 1. Install [Obtainium](https://github.com/ImranR98/Obtainium/releases).
