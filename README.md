@@ -32,6 +32,24 @@ it found it. The whole sequence takes about half a second.
 1. Download the APK from the [latest release](https://github.com/AgusRomeroL/video-boost-ao/releases/latest)
    and install it (allow "install unknown apps").
 
+### "App blocked by Play Protect" when installing the APK
+
+Google Play Protect warns about **any** sideloaded app that declares an
+accessibility service (the same warning Tasker, MacroDroid, etc. get). It does
+not mean the app is unsafe. To proceed:
+
+- Tap the APK again; on the "App blocked" dialog choose **More details** →
+  **Install anyway**.
+- If that option isn't offered: Play Store → profile → **Play Protect** →
+  settings (⚙️) → turn off **Scan apps with Play Protect**, install, then turn
+  it back on.
+- **Installing via Obtainium avoids most of this friction** (session-based
+  install), which is why it's the recommended method above.
+
+The warning eases over time with reputation and by being listed on trusted
+sources; it can't be fully removed without Play Store distribution, which this
+app avoids on purpose (see *Distribution notes*).
+
 ### Then, one-time setup (both methods)
 
 2. Open *Video Boost AO* → the app guides you: tap **Open Accessibility
@@ -108,6 +126,7 @@ more of both.
 
 | Symptom | Cause / Fix |
 |---|---|
+| **"App blocked to protect your device" (Play Protect)** | Expected for any sideloaded accessibility app; not a defect. Tap **More details → Install anyway**, or temporarily disable Play Protect scanning. Obtainium avoids most of this. See the install section. |
 | **Can't enable the service ("Restricted setting")** | Normal for sideloaded apps on Android 13+. App info → ⋮ → **Allow restricted settings** → confirm, then enable it (see steps above). Installing via a session-based installer (SAI, or Obtainium) avoids this. |
 | **Service enabled, but Video Boost doesn't turn on** | Make sure the camera is in **Video** mode (Video Boost only exists there) and your device actually **has** Video Boost (Pixel Pro, 8 Pro+). Confirm the sparkle icon appears top-left. Check logs: `adb logcat -s VideoBoostAO`. |
 | **It worked, then stopped after a Pixel Camera update** | A Feature Drop changed the UI. See *maintenance* below: re-anchor the resource-id and regenerate the localized labels. Open an issue and I'll push a fix. |
