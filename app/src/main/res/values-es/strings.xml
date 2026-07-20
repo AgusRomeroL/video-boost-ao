@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Video Boost AO</string>
+    <string name="service_label">Video Boost Siempre Activo</string>
+    <string name="service_desc">Reactiva Video Boost automáticamente cada vez que Pixel Camera se abre en modo video. Solo lee y toca controles dentro de Pixel Camera, nada más.</string>
+
+    <!-- Estado hero -->
+    <string name="status_active_title">Siempre activo</string>
+    <string name="status_active_body">Video Boost se encenderá solo cada vez que abras la Cámara en modo video.</string>
+    <string name="status_paused_title">En pausa</string>
+    <string name="status_paused_body">El servicio está listo, pero la automatización está pausada. Activá el interruptor para reanudar.</string>
+    <string name="status_setup_title">Falta configurar</string>
+    <string name="status_setup_body">Habilitá el servicio de accesibilidad para que la app pueda encender Video Boost por vos.</string>
+
+    <!-- Switch maestro -->
+    <string name="master_switch_title">Mantener Video Boost siempre activo</string>
+    <string name="master_switch_hint_disabled">Primero habilitá el servicio de accesibilidad</string>
+
+    <!-- Onboarding -->
+    <string name="setup_card_title">Configuración única</string>
+    <string name="setup_step_1">Tocá el botón de abajo: abre los ajustes de Accesibilidad con Video Boost Siempre Activo resaltado.</string>
+    <string name="setup_step_2">Activá el servicio y confirmá.</string>
+    <string name="setup_step_3">Si Android dice \"Ajuste restringido\", abrí Información de la app, tocá el menú ⋮ (arriba a la derecha) → \"Permitir ajustes restringidos\", confirmá con tu huella y reintentá.</string>
+    <string name="btn_open_accessibility">Abrir ajustes de Accesibilidad</string>
+    <string name="btn_open_app_info">Abrir Información de la app (ajustes restringidos)</string>
+
+    <!-- Acciones -->
+    <string name="btn_try_now">Probar ahora</string>
+    <string name="btn_donate">Apoyar el proyecto</string>
+
+    <!-- Consumo -->
+    <string name="cost_title">Ojo: datos y almacenamiento</string>
+    <string name="cost_body">Video Boost procesa el video en la nube vía Google Photos. Cada video se guarda dos veces y consume datos. Siempre activo = más consumo.</string>
+
+    <!-- Pro-only -->
+    <string name="pro_note">Funciona en modelos Pixel Pro con Video Boost (Pixel 8 Pro y modelos Pro posteriores).</string>
+</resources>

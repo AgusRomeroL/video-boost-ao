@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Video Boost AO</string>
+    <string name="service_label">Video Boost Always-On</string>
+    <string name="service_desc">Automatically re-enables Video Boost every time Pixel Camera opens in video mode. It only reads and taps controls inside Pixel Camera, nothing else.</string>
+
+    <!-- Estado hero -->
+    <string name="status_active_title">Always-on</string>
+    <string name="status_active_body">Video Boost will turn on by itself every time you open the Camera in video mode.</string>
+    <string name="status_paused_title">Paused</string>
+    <string name="status_paused_body">The service is ready, but automation is paused. Flip the switch to resume.</string>
+    <string name="status_setup_title">Setup needed</string>
+    <string name="status_setup_body">Enable the accessibility service to let the app flip the Video Boost toggle for you.</string>
+
+    <!-- Switch maestro -->
+    <string name="master_switch_title">Keep Video Boost always on</string>
+    <string name="master_switch_hint_disabled">Enable the accessibility service first</string>
+
+    <!-- Onboarding -->
+    <string name="setup_card_title">One-time setup</string>
+    <string name="setup_step_1">Tap the button below — it opens Accessibility settings with Video Boost Always-On highlighted.</string>
+    <string name="setup_step_2">Turn the service on and confirm.</string>
+    <string name="setup_step_3">If Android says \"Restricted setting\", open App info, tap the ⋮ menu (top right) → \"Allow restricted settings\", confirm with your fingerprint, and try again.</string>
+    <string name="btn_open_accessibility">Open Accessibility settings</string>
+    <string name="btn_open_app_info">Open App info (restricted settings)</string>
+
+    <!-- Acciones -->
+    <string name="btn_try_now">Try it now</string>
+    <string name="btn_donate">Support the project</string>
+
+    <!-- Consumo -->
+    <string name="cost_title">Heads-up: data &amp; storage</string>
+    <string name="cost_body">Video Boost processes video in the cloud through Google Photos. Each video is stored twice and uses data. Always-on means more of both.</string>
+
+    <!-- Pro-only -->
+    <string name="pro_note">Works on Pixel Pro models with Video Boost (Pixel 8 Pro and newer Pro models).</string>
+</resources>
