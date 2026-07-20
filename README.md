@@ -4,17 +4,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/agusromero)
 
-**Keep Video Boost always on for your Pixel Pro — no root.**
+**Keep Video Boost always on for your Pixel Pro. No root.**
 
 Pixel Camera deliberately turns Video Boost off every time you close the app
 (Google briefly made it persistent in Feb 2025 and then reverted it). There is
-no flag, intent or preference that can pin it without root — so this app
+no flag, intent or preference that can pin it without root, so this app
 re-enables it for you, automatically, every time you open the camera in video
 mode.
 
 An `AccessibilityService` detects Pixel Camera in the foreground, opens the
 **Video Settings** panel, reads the actual state of the **Video Boost** toggle
-and turns it on only if it is off (it never taps blindly — if it is already on
+and turns it on only if it is off (it never taps blindly; if it is already on
 it does nothing). Then it closes the panel to leave the viewfinder exactly as
 it found it. The whole sequence takes about half a second.
 
@@ -24,7 +24,7 @@ it found it. The whole sequence takes about half a second.
 
 1. Install [Obtainium](https://github.com/ImranR98/Obtainium/releases).
 2. Add this app: **[one-tap link](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/AgusRomeroL/video-boost-ao)**
-   — or in Obtainium: *Add App* → paste `https://github.com/AgusRomeroL/video-boost-ao`.
+   (or in Obtainium: *Add App* → paste `https://github.com/AgusRomeroL/video-boost-ao`).
 3. Obtainium installs the latest release and updates it automatically from now on.
 
 ### Manual
@@ -58,7 +58,7 @@ touching accessibility settings, and checks GitHub for **updates** on launch
 
 ## Enabling the accessibility service (step by step)
 
-Android does not let apps grant themselves this permission — you enable it once,
+Android does not let apps grant themselves this permission; you enable it once,
 by hand. The app guides you the whole way:
 
 1. In the app, open the **Setup guide** card and tap **Open Accessibility
@@ -70,18 +70,18 @@ by hand. The app guides you the whole way:
    then the **⋮** menu (top right) → **Allow restricted settings** → confirm
    with your fingerprint/PIN. Now repeat step 1.
    - If the **⋮** menu is missing: open the app once, swipe it away from
-     Recents, then long-press its icon → **App info** — the menu appears there.
+     Recents, then long-press its icon → **App info**; the menu appears there.
 4. Back in the app, the hero turns to **"Always-on"** and the master switch is
    enabled. You're done.
 
-You can pause the feature anytime with the **master switch** inside the app —
+You can pause the feature anytime with the **master switch** inside the app;
 no need to disable accessibility.
 
 ## Features
 
-- Re-enables Video Boost on every camera session — the thing Pixel Camera
+- Re-enables Video Boost on every camera session, the thing Pixel Camera
   refuses to remember.
-- **74 languages**: the UI labels it looks for are not guessed — they are
+- **74 languages**: the UI labels it looks for are not guessed; they are
   extracted directly from the real Pixel Camera APK
   ([`CameraLabels.kt`](app/src/main/java/com/agustin/videoboostao/CameraLabels.kt)).
 - **RTL-aware**: in Arabic/Hebrew/Farsi/Urdu the on/off segmented buttons are
@@ -108,16 +108,16 @@ more of both.
 
 | Symptom | Cause / Fix |
 |---|---|
-| **Can't enable the service — "Restricted setting"** | Normal for sideloaded apps on Android 13+. App info → ⋮ → **Allow restricted settings** → confirm, then enable it (see steps above). Installing via a session-based installer (SAI, or Obtainium) avoids this. |
+| **Can't enable the service ("Restricted setting")** | Normal for sideloaded apps on Android 13+. App info → ⋮ → **Allow restricted settings** → confirm, then enable it (see steps above). Installing via a session-based installer (SAI, or Obtainium) avoids this. |
 | **Service enabled, but Video Boost doesn't turn on** | Make sure the camera is in **Video** mode (Video Boost only exists there) and your device actually **has** Video Boost (Pixel Pro, 8 Pro+). Confirm the sparkle icon appears top-left. Check logs: `adb logcat -s VideoBoostAO`. |
-| **It worked, then stopped after a Pixel Camera update** | A Feature Drop changed the UI. See *maintenance* below — re-anchor the resource-id and regenerate the localized labels. Open an issue and I'll push a fix. |
+| **It worked, then stopped after a Pixel Camera update** | A Feature Drop changed the UI. See *maintenance* below: re-anchor the resource-id and regenerate the localized labels. Open an issue and I'll push a fix. |
 | **Nothing happens right after enabling** | Android sometimes needs a moment to bind a freshly enabled service. Close the camera fully and reopen it once. |
 | **Boots but toggle looks off in my language** | The labels cover 74 languages extracted from the camera APK. If yours regressed after an update, open an issue with your system language. |
-| **Turned it off by accident** | Use the master switch in the app, or if you disabled the accessibility service, just re-enable it — your settings are kept. |
+| **Turned it off by accident** | Use the master switch in the app, or if you disabled the accessibility service, just re-enable it; your settings are kept. |
 | **Battery/data concern** | Video Boost uploads every video to Google Photos and keeps two copies. Pause with the master switch when you don't need it. |
 
 Found a bug or a language/Feature-Drop regression? Please
-[open an issue](https://github.com/AgusRomeroL/video-boost-ao/issues) — include
+[open an issue](https://github.com/AgusRomeroL/video-boost-ao/issues) with
 your Pixel model, Android version, Pixel Camera version, and `adb logcat -s
 VideoBoostAO` output if you can.
 
@@ -145,7 +145,7 @@ Pixel Camera Feature Drops can change texts, ids or view hierarchy.
   ```
 
   Relevant resources: `string/sapphire_label` (row label), `string/mode_video`
-  (mode chip), `string/sapphire_on_desc` (on-button content description) —
+  (mode chip), `string/sapphire_on_desc` (on-button content description).
   "Sapphire" is Video Boost's internal codename.
 
 Debug logs: `adb logcat -s VideoBoostAO`
@@ -173,7 +173,7 @@ keyPassword=...
 
 **Not on Google Play, on purpose.** This app uses an `AccessibilityService`
 for a non-accessibility purpose (automating another app's UI), which Play's
-policy requires declaring and effectively prohibits — with account-level
+policy requires declaring and effectively prohibits, with account-level
 enforcement risk. Distribution is via GitHub Releases (this repo), Obtainium,
 and F-Droid-compatible repos that ship the developer-signed APK.
 

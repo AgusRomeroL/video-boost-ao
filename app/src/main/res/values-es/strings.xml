@@ -18,7 +18,7 @@
 
     <!-- Onboarding -->
     <string name="setup_card_title">Guía de configuración</string>
-    <string name="setup_done_hint">Servicio habilitado ✓ — tocá para repasar los pasos</string>
+    <string name="setup_done_hint">Servicio habilitado ✓. Tocá para repasar los pasos</string>
     <string name="setup_step_1">Tocá el botón de abajo: abre los ajustes de Accesibilidad con Video Boost Siempre Activo resaltado.</string>
     <string name="setup_step_2">Activá el servicio y confirmá.</string>
     <string name="setup_step_3">Si Android dice \"Ajuste restringido\", abrí Información de la app, tocá el menú ⋮ (arriba a la derecha) → \"Permitir ajustes restringidos\", confirmá con tu huella y reintentá.</string>

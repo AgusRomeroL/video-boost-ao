@@ -71,7 +71,7 @@ class VideoBoostService : AccessibilityService() {
 
         // Sin filtro de package en el manifest: el filtrado es acá. Los
         // eventos de otras apps solo sirven para detectar que la cámara
-        // dejó el primer plano y resetear la sesión — nunca se inspecciona
+        // dejó el primer plano y resetear la sesión; nunca se inspecciona
         // ni toca nada fuera de Pixel Camera.
         if (pkg != Selectors.CAMERA_PACKAGE) {
             if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
@@ -89,7 +89,7 @@ class VideoBoostService : AccessibilityService() {
         if (handledThisSession) return
 
         // Throttle (no debounce): la ráfaga de eventos durante la carga del
-        // visor no pospone el intento — el primero corre a los 150 ms del
+        // visor no pospone el intento: el primero corre a los 150 ms del
         // primer evento y de ahí se sondea a ritmo fijo.
         if (!handler.hasCallbacks(attemptRunnable)) {
             handler.postDelayed(attemptRunnable, ATTEMPT_DELAY_MS)

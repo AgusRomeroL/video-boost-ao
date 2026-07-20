@@ -13,7 +13,7 @@ object Selectors {
     /**
      * Botón que abre/despliega el panel de ajustes de video (abajo a la
      * izquierda del visor). Resource-id estable confirmado por
-     * `uiautomator dump` en un Pixel 10 Pro XL (Pixel Camera, jul-2026) —
+     * `uiautomator dump` en un Pixel 10 Pro XL (Pixel Camera, jul-2026):
      * no depende del idioma del sistema.
      */
     const val VIDEO_SETTINGS_ENTRY_ID = "$CAMERA_PACKAGE:id/options_entry_button"
@@ -23,7 +23,7 @@ object Selectors {
      * "Slow Motion"). Se usa para confirmar que el modo activo es Video
      * antes de tocar nada. Los textos localizados del chip y de la fila
      * "Video Boost" viven en [CameraLabels] (extraídos de la APK real de
-     * Pixel Camera — 74 idiomas).
+     * Pixel Camera, 74 idiomas).
      */
     const val MODE_CHIP_TEXT_ID = "$CAMERA_PACKAGE:id/mode_chip_text"
 }

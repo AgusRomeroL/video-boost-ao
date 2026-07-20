@@ -18,8 +18,8 @@
 
     <!-- Onboarding -->
     <string name="setup_card_title">Setup guide</string>
-    <string name="setup_done_hint">Service enabled ✓ — tap to review the steps</string>
-    <string name="setup_step_1">Tap the button below — it opens Accessibility settings with Video Boost Always-On highlighted.</string>
+    <string name="setup_done_hint">Service enabled ✓. Tap to review the steps</string>
+    <string name="setup_step_1">Tap the button below. It opens Accessibility settings with Video Boost Always-On highlighted.</string>
     <string name="setup_step_2">Turn the service on and confirm.</string>
     <string name="setup_step_3">If Android says \"Restricted setting\", open App info, tap the ⋮ menu (top right) → \"Allow restricted settings\", confirm with your fingerprint, and try again.</string>
     <string name="btn_open_accessibility">Open Accessibility settings</string>
