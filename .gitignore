@@ -22,3 +22,6 @@ pixel_*.html
 
 # Release artifacts
 *.apk
+
+# Internal guidance (kept local, not published)
+CLAUDE.md
