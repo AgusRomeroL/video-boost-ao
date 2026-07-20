@@ -49,6 +49,34 @@ The app includes a **master switch** to pause/resume the automation without
 touching accessibility settings, and checks GitHub for **updates** on launch
 (a card appears when a new version is available).
 
+## Screenshots
+
+| Setup needed | Enabling the service | Active |
+|:---:|:---:|:---:|
+| ![Setup guide](docs/screenshot-setup.png) | ![Accessibility highlighted](docs/screenshot-accessibility-highlight.png) | ![Active](docs/screenshot-active.png) |
+| The guide stays available; it is expanded until the service is on. | "Open Accessibility settings" jumps straight to your entry, **highlighted**. | Once enabled, the guide collapses to a checkmark you can reopen anytime. |
+
+## Enabling the accessibility service (step by step)
+
+Android does not let apps grant themselves this permission — you enable it once,
+by hand. The app guides you the whole way:
+
+1. In the app, open the **Setup guide** card and tap **Open Accessibility
+   settings**. Android's Accessibility screen opens with **Video Boost
+   Always-On highlighted** (see the middle screenshot above).
+2. Tap it, turn the switch **on**, and confirm.
+3. **If you see "Restricted setting"** (Android 13+ shows this for any app
+   installed outside the Play Store): go back to the app, tap **Open App info**,
+   then the **⋮** menu (top right) → **Allow restricted settings** → confirm
+   with your fingerprint/PIN. Now repeat step 1.
+   - If the **⋮** menu is missing: open the app once, swipe it away from
+     Recents, then long-press its icon → **App info** — the menu appears there.
+4. Back in the app, the hero turns to **"Always-on"** and the master switch is
+   enabled. You're done.
+
+You can pause the feature anytime with the **master switch** inside the app —
+no need to disable accessibility.
+
 ## Features
 
 - Re-enables Video Boost on every camera session — the thing Pixel Camera
@@ -75,6 +103,23 @@ touching accessibility settings, and checks GitHub for **updates** on launch
 Video Boost processes video in the cloud through Google Photos: each boosted
 video is uploaded and stored twice, using data and storage. Always-on means
 more of both.
+
+## Troubleshooting
+
+| Symptom | Cause / Fix |
+|---|---|
+| **Can't enable the service — "Restricted setting"** | Normal for sideloaded apps on Android 13+. App info → ⋮ → **Allow restricted settings** → confirm, then enable it (see steps above). Installing via a session-based installer (SAI, or Obtainium) avoids this. |
+| **Service enabled, but Video Boost doesn't turn on** | Make sure the camera is in **Video** mode (Video Boost only exists there) and your device actually **has** Video Boost (Pixel Pro, 8 Pro+). Confirm the sparkle icon appears top-left. Check logs: `adb logcat -s VideoBoostAO`. |
+| **It worked, then stopped after a Pixel Camera update** | A Feature Drop changed the UI. See *maintenance* below — re-anchor the resource-id and regenerate the localized labels. Open an issue and I'll push a fix. |
+| **Nothing happens right after enabling** | Android sometimes needs a moment to bind a freshly enabled service. Close the camera fully and reopen it once. |
+| **Boots but toggle looks off in my language** | The labels cover 74 languages extracted from the camera APK. If yours regressed after an update, open an issue with your system language. |
+| **Turned it off by accident** | Use the master switch in the app, or if you disabled the accessibility service, just re-enable it — your settings are kept. |
+| **Battery/data concern** | Video Boost uploads every video to Google Photos and keeps two copies. Pause with the master switch when you don't need it. |
+
+Found a bug or a language/Feature-Drop regression? Please
+[open an issue](https://github.com/AgusRomeroL/video-boost-ao/issues) — include
+your Pixel model, Android version, Pixel Camera version, and `adb logcat -s
+VideoBoostAO` output if you can.
 
 ## If it stops working (maintenance)
 
