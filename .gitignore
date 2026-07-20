@@ -19,3 +19,6 @@ tools/gcam-resources.txt
 
 # Artefactos de investigacion (volcados de paginas)
 pixel_*.html
+
+# Release artifacts
+*.apk
