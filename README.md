@@ -1,180 +1,143 @@
-# Video Boost AO (Always-On) — Pixel 10 Pro
+# Video Boost AO (Always-On)
 
-App sideload (sin root) que reactiva **Video Boost** automáticamente cada vez que
-abrís Pixel Camera en modo video. Un `AccessibilityService` detecta la cámara en
-primer plano, abre el panel **Video Settings**, lee el estado del toggle
-**Video Boost** y lo enciende solo si está apagado (nunca clickea a ciegas —
-si ya estaba activo no lo toca). Después cierra el panel para dejar el visor
-como estaba.
+[![Latest release](https://img.shields.io/github/v/release/AgusRomeroL/video-boost-ao)](https://github.com/AgusRomeroL/video-boost-ao/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/agusromero)
 
-**Por qué existe:** Pixel Camera apaga Video Boost deliberadamente en cada
-sesión (Google lo hizo persistente unas semanas en feb-2025 y lo revirtió). No
-hay flag, intent ni preferencia que lo fije sin root; la única vía sin root es
-re-activarlo por accesibilidad en cada apertura.
+**Keep Video Boost always on for your Pixel Pro — no root.**
 
-## Instalación
+Pixel Camera deliberately turns Video Boost off every time you close the app
+(Google briefly made it persistent in Feb 2025 and then reverted it). There is
+no flag, intent or preference that can pin it without root — so this app
+re-enables it for you, automatically, every time you open the camera in video
+mode.
 
-1. **Instalar el APK** (`app/build/outputs/apk/debug/app-debug.apk`):
-   - Por cable: `adb install app-debug.apk` (autorizar depuración USB en el teléfono), o
-   - Copiando el APK al teléfono y abriéndolo (permitir "instalar apps desconocidas"), o
-   - Con [SAI (Split APKs Installer)](https://github.com/Aefyr/SAI) — **recomendado**:
-     al instalar por sesión, Android no lo trata como sideload y **no aplica la
-     restricción de "ajustes restringidos"** del paso 3.
+An `AccessibilityService` detects Pixel Camera in the foreground, opens the
+**Video Settings** panel, reads the actual state of the **Video Boost** toggle
+and turns it on only if it is off (it never taps blindly — if it is already on
+it does nothing). Then it closes the panel to leave the viewfinder exactly as
+it found it. The whole sequence takes about half a second.
 
-2. **Habilitar el servicio:** abrir la app *Video Boost AO* → "Abrir ajustes de
-   Accesibilidad" → habilitar *Video Boost Siempre Activo*.
+## Install
 
-3. **Si aparece "Ajuste restringido"** (normal en APK instalado a mano en
-   Android 13+): en la app tocá "Abrir Información de la app" → menú **⋮**
-   (arriba a la derecha) → **"Permitir ajustes restringidos"** (PIN/huella) →
-   repetir el paso 2. Si el menú ⋮ no aparece: abrí la app, cerrala desde
-   multitarea, y entrá por pulsación larga del icono → "Información de la app".
+### Recommended: Obtainium (automatic updates)
 
-4. **Probar:** abrir Pixel Camera → modo Video. En ~0,5 s el servicio abre el
-   panel, activa Video Boost (icono con chispa arriba a la izquierda del visor)
-   y cierra el panel. La app tiene un botón "Probar ahora" que lo hace por vos.
+1. Install [Obtainium](https://github.com/ImranR98/Obtainium/releases).
+2. Add this app: **[one-tap link](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/AgusRomeroL/video-boost-ao)**
+   — or in Obtainium: *Add App* → paste `https://github.com/AgusRomeroL/video-boost-ao`.
+3. Obtainium installs the latest release and updates it automatically from now on.
 
-La app (Compose, Material 3 Expressive) te guía el alta del servicio con un
-botón que abre Accesibilidad **resaltando** la entrada del servicio, e incluye
-un **interruptor maestro** para pausar/reanudar la función sin tener que
-deshabilitar la accesibilidad.
+### Manual
 
-## Verificación completa
+1. Download the APK from the [latest release](https://github.com/AgusRomeroL/video-boost-ao/releases/latest)
+   and install it (allow "install unknown apps").
 
-- Cerrar la cámara desde multitarea y reabrir → se reactiva solo.
-- Cambiar foto↔video con Boost ya activo → no lo toca (idempotente).
-- Modo foto → no hace nada.
-- Grabar un video corto → confirmar en Google Photos el procesamiento Boost.
-- Reiniciar el teléfono → el servicio persiste.
-- Logs: `adb logcat -s VideoBoostAO`
+### Then, one-time setup (both methods)
 
-## Idiomas
+2. Open *Video Boost AO* → the app guides you: tap **Open Accessibility
+   settings** (your service entry comes up highlighted) and enable
+   *Video Boost Always-On*.
+3. If Android shows **"Restricted setting"** (normal for sideloaded apps on
+   Android 13+): tap **Open App info** in the app → ⋮ menu (top right) →
+   **"Allow restricted settings"** (confirm with fingerprint/PIN) → retry
+   step 2.
+4. Open Pixel Camera in video mode: within ~0.5 s Video Boost turns on by
+   itself (sparkle icon at the top left of the viewfinder). The app also has a
+   **Try it now** button.
 
-Funciona en cualquier idioma del sistema soportado por Pixel Camera (74
-idiomas — todos los mercados oficiales del Pixel y más). Las etiquetas
-localizadas del chip "Video" y de la fila "Video Boost" NO están adivinadas:
-se extraen directamente de la propia APK de Pixel Camera del dispositivo y
-viven en [`CameraLabels.kt`](app/src/main/java/com/agustin/videoboostao/CameraLabels.kt).
+The app includes a **master switch** to pause/resume the automation without
+touching accessibility settings, and checks GitHub for **updates** on launch
+(a card appears when a new version is available).
 
-Detalles de la lógica:
+## Features
 
-- El servicio lee el idioma del sistema y busca las etiquetas de ese idioma,
-  con inglés como respaldo.
-- La fila Video Boost se identifica por texto localizado; el botón "on", de
-  forma primaria por su `contentDescription` y, como respaldo, por posición
-  **consciente de RTL**: en árabe/hebreo/farsi/urdu el orden de los botones se
-  invierte (el "on" queda a la izquierda), y el servicio lo contempla. Esto
-  importa porque en algunos idiomas los botones exponen `contentDescription`
-  vacío y solo queda la vía posicional.
+- Re-enables Video Boost on every camera session — the thing Pixel Camera
+  refuses to remember.
+- **74 languages**: the UI labels it looks for are not guessed — they are
+  extracted directly from the real Pixel Camera APK
+  ([`CameraLabels.kt`](app/src/main/java/com/agustin/videoboostao/CameraLabels.kt)).
+- **RTL-aware**: in Arabic/Hebrew/Farsi/Urdu the on/off segmented buttons are
+  mirrored; the service picks the correct one (verified against the live UI).
+- Idempotent and safe: reads the toggle state before acting; never turns
+  Video Boost off; gives up quietly after a few attempts if the UI changed.
+- Material 3 UI (Compose) with dynamic color, guided onboarding, master
+  switch, and an update checker.
+- No root, no Shizuku, no analytics. `INTERNET` permission is used solely for
+  the GitHub release check.
 
-## Si deja de funcionar (mantenimiento)
+## Requirements
 
-El `resource-id` de apertura del panel vive en
-[`Selectors.kt`](app/src/main/java/com/agustin/videoboostao/Selectors.kt); las
-etiquetas localizadas en `CameraLabels.kt`. Cada Feature Drop de Pixel Camera
-puede cambiar textos, ids o jerarquía.
+- A Pixel Pro model with Video Boost (Pixel 8 Pro and newer Pro models).
+- Recent Pixel Camera (10.x line, Android 16).
 
-Para re-anclar los `resource-id` (dump en vivo):
+## Heads-up: data & storage
 
-```
-# Con la cámara en modo video y el panel Video Settings abierto:
-adb exec-out uiautomator dump /dev/tty
-```
+Video Boost processes video in the cloud through Google Photos: each boosted
+video is uploaded and stored twice, using data and storage. Always-on means
+more of both.
 
-Para regenerar las etiquetas localizadas desde la APK real (recomendado tras
-un update de la cámara), el pipeline usado fue:
+## If it stops working (maintenance)
 
-```
-adb shell pm path com.google.android.GoogleCamera      # ubicar base.apk
-adb pull <base.apk>
-aapt2 dump resources base.apk > gcam-resources.txt     # build-tools/aapt2
-# extraer string/sapphire_label (fila), string/mode_video (chip),
-# string/sapphire_on_desc (contentDescription del botón "on")
-```
+Pixel Camera Feature Drops can change texts, ids or view hierarchy.
 
-El script [`tools/gen-labels.ps1`](tools/gen-labels.ps1) automatiza la
-extracción y regenera `CameraLabels.kt` (74 idiomas, variantes regionales
-fusionadas por idioma).
+- The panel-entry `resource-id` lives in
+  [`Selectors.kt`](app/src/main/java/com/agustin/videoboostao/Selectors.kt);
+  localized labels live in `CameraLabels.kt`.
+- Re-anchor resource-ids with a live dump (camera in video mode, panel open):
+
+  ```
+  adb exec-out uiautomator dump /dev/tty
+  ```
+
+- Regenerate localized labels from the real camera APK with
+  [`tools/gen-labels.ps1`](tools/gen-labels.ps1):
+
+  ```
+  adb shell pm path com.google.android.GoogleCamera   # locate base.apk
+  adb pull <base.apk> tools/gcam-base.apk
+  aapt2 dump resources tools/gcam-base.apk > tools/gcam-resources.txt
+  powershell tools/gen-labels.ps1
+  ```
+
+  Relevant resources: `string/sapphire_label` (row label), `string/mode_video`
+  (mode chip), `string/sapphire_on_desc` (on-button content description) —
+  "Sapphire" is Video Boost's internal codename.
+
+Debug logs: `adb logcat -s VideoBoostAO`
 
 ## Build
 
-Requiere Android SDK (platform 36) y JDK 17+ (sirve el JBR de Android Studio):
+Android SDK (platform 36) + JDK 17 (Android Studio's JBR works):
 
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
-gradle assembleDebug     # debug, para desarrollo
-gradle assembleRelease   # release firmado (necesita keystore.properties)
+```
+./gradlew assembleDebug     # debug build
+./gradlew assembleRelease   # signed release (needs keystore.properties)
 ```
 
-**Firma release:** las credenciales van en `keystore.properties` (raíz, fuera
-de git) apuntando a un keystore **fuera del repo**. Formato:
+Release signing reads `keystore.properties` (repo root, gitignored) pointing
+to a keystore **outside** the repo:
 
 ```properties
-storeFile=RUTA\\AL\\videoboostao-release.keystore
+storeFile=PATH\\TO\\your-release.keystore
 storePassword=...
-keyAlias=videoboostao
+keyAlias=...
 keyPassword=...
 ```
 
-⚠️ **Respaldá el keystore.** Si lo perdés no podés volver a firmar
-actualizaciones con la misma identidad (los usuarios tendrían que desinstalar
-y reinstalar). Guardá una copia segura.
+## Distribution notes
 
-## Distribución
+**Not on Google Play, on purpose.** This app uses an `AccessibilityService`
+for a non-accessibility purpose (automating another app's UI), which Play's
+policy requires declaring and effectively prohibits — with account-level
+enforcement risk. Distribution is via GitHub Releases (this repo), Obtainium,
+and F-Droid-compatible repos that ship the developer-signed APK.
 
-**Google Play: NO recomendado.** La app usa un `AccessibilityService` para un
-fin que no es de accesibilidad (automatiza la UI de otra app). La política de
-Google Play exige declararlo y aprobarlo, y **prohíbe** usar la API de
-accesibilidad para "cambiar/aprovechar de forma engañosa la interfaz" de otra
-app o cambiar ajustes — justo lo que hace esto. El riesgo no es solo rechazo:
-puede terminar en **suspensión de la cuenta de desarrollador**. No vale la pena.
+## Support
 
-**Vía recomendada (sideload, open source):**
+If this app saves you a daily tap, you can support development:
 
-1. **GitHub** — repo público con la licencia MIT; subir el **APK release
-   firmado** como asset en cada *Release* con un tag `vX.Y`. Es la fuente de
-   verdad para todo lo demás.
-2. **Obtainium** — los usuarios agregan la URL del repo y reciben
-   actualizaciones automáticas directo desde tus GitHub Releases. Cero
-   infraestructura de tu lado. Es la mejor recomendación para tus usuarios.
-3. **IzzyOnDroid** — repo compatible con F-Droid que **distribuye tu propio APK
-   firmado** (no recompila desde fuente como F-Droid oficial). Chequea tu repo
-   a diario y publica en ~24 h. Da un canal de actualización a clientes tipo
-   F-Droid y más alcance/confianza. Requiere enviar la app a su lista.
-4. **APKMirror** — opcional, para alcance masivo por buscador; sin canal de
-   actualización propio.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/agusromero)
 
-**Fricción a documentar para los usuarios:** en Android 13+ una app sideload
-necesita "Permitir ajustes restringidos" para habilitar accesibilidad (ya está
-explicado arriba y guiado dentro de la app). Instalar vía Obtainium/un
-instalador por sesión reduce esa fricción.
+## License
 
-## Donaciones
-
-Botón configurable en la app (`DonationConfig.DONATE_URL`, hoy vacío → botón
-oculto). Recomendación para un creador en **México**:
-
-- **Ko-fi (recomendado):** **0 % de comisión** en donaciones/propinas, sin cuota
-  mensual, payout **directo e instantáneo** a tu PayPal o Stripe (solo el fee de
-  procesamiento ~2,9 % + fijo). Un solo link (`ko-fi.com/tuusuario`) que se pega
-  en `DONATE_URL`. Funciona para creadores en México (PayPal MX disponible).
-- **GitHub Sponsors (secundario):** 0 % de GitHub, encaja natural con el repo
-  open source, pero el payout usa Stripe Connect y la elegibilidad/pago a México
-  no está garantizada; requiere solicitud y aprobación. Útil como segundo botón
-  en el repo si te aceptan.
-- Evitar **Buy Me a Coffee** (5 % de comisión) frente al 0 % de Ko-fi.
-
-Para conectarlo: crear la cuenta de Ko-fi, poner la URL en
-[`DonationConfig.kt`](app/src/main/java/com/agustin/videoboostao/DonationConfig.kt)
-y recompilar. El botón "Apoyar el proyecto" aparece solo cuando la URL no está
-vacía. Nota: es un link externo (no el billing de Play), así que no aplica
-comisión de Google.
-
-## Advertencias
-
-- **Consumo:** Video Boost procesa en la nube vía Google Photos — crea dos
-  copias por video y consume datos/almacenamiento. Siempre activo = más consumo.
-- **Privacidad:** el servicio filtra por código los eventos a
-  `com.google.android.GoogleCamera` y solo lee/toca controles dentro de Pixel
-  Camera; no actúa sobre ninguna otra app.
-- **Fragilidad:** depende de la UI de Pixel Camera; no es "fire and forget".
+[MIT](LICENSE) © 2026 Agustín Romero López
