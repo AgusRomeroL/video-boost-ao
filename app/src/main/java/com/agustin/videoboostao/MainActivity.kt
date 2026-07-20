@@ -206,7 +206,7 @@ private fun HeroCard(serviceEnabled: Boolean, featureEnabled: Boolean) {
         ) {
             Surface(
                 shape = CircleShape,
-                color = Color(0xFF55BFEF),
+                color = Color(0xFF6CC0FE),
                 modifier = Modifier.size(72.dp),
             ) {
                 androidx.compose.foundation.Image(
@@ -273,97 +273,147 @@ private fun MasterSwitchCard(
 
 @Composable
 private fun SetupCard(context: Context, serviceEnabled: Boolean) {
-    var expanded by remember(serviceEnabled) { mutableStateOf(!serviceEnabled) }
-
-    Card(
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(
-            containerColor = if (serviceEnabled) {
-                MaterialTheme.colorScheme.surfaceContainerLow
-            } else {
-                MaterialTheme.colorScheme.secondaryContainer
-            },
-        ),
-        onClick = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    if (serviceEnabled) {
+        // Servicio listo: guía colapsada y reconsultable.
+        var expanded by remember { mutableStateOf(false) }
+        Card(
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+            onClick = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.setup_card_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    if (serviceEnabled) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.setup_card_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(
                             text = stringResource(R.string.setup_done_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                    Text(
+                        text = if (expanded) "▲" else "▼",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-                Text(
-                    text = if (expanded) "▲" else "▼",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (expanded) GuidedSteps(context, showActions = false)
             }
-
-            if (expanded) {
-                NumberedStep(1, stringResource(R.string.setup_step_1))
-                NumberedStep(2, stringResource(R.string.setup_step_2))
-                NumberedStep(3, stringResource(R.string.setup_step_3))
-
-                Button(
-                    onClick = { openAccessibilitySettingsHighlighted(context) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.btn_open_accessibility))
-                }
-                OutlinedButton(
-                    onClick = {
-                        context.startActivity(
-                            Intent(
-                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", context.packageName, null),
-                            )
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.btn_open_app_info))
-                }
+        }
+    } else {
+        // Falta configurar: asistente guiado paso a paso.
+        Card(
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.guided_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = stringResource(R.string.guided_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                GuidedSteps(context, showActions = true)
             }
         }
     }
 }
 
 @Composable
-private fun NumberedStep(number: Int, text: String) {
+private fun GuidedSteps(context: Context, showActions: Boolean) {
+    StepBlock(
+        number = 1,
+        title = stringResource(R.string.guided_step1_title),
+        body = stringResource(R.string.guided_step1_body),
+    ) {
+        if (showActions) {
+            Button(
+                onClick = { openAccessibilitySettingsHighlighted(context) },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.guided_step1_action)) }
+            Text(
+                text = stringResource(R.string.guided_step1_waiting),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    StepBlock(
+        number = 2,
+        title = stringResource(R.string.guided_step2_title),
+        body = stringResource(R.string.guided_step2_body),
+    ) {
+        if (showActions) {
+            OutlinedButton(
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", context.packageName, null),
+                        )
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.guided_step2_action)) }
+        }
+    }
+    Text(
+        text = stringResource(R.string.guided_playprotect),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun StepBlock(
+    number: Int,
+    title: String,
+    body: String,
+    action: @Composable () -> Unit,
+) {
     Row(verticalAlignment = Alignment.Top) {
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(28.dp),
         ) {
             Text(
                 text = number.toString(),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSecondary,
-                modifier = Modifier.padding(top = 3.dp),
+                modifier = Modifier.padding(top = 4.dp),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
         Spacer(Modifier.width(12.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
+        Column(
             modifier = Modifier.weight(1f),
-        )
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(text = body, style = MaterialTheme.typography.bodyMedium)
+            action()
+        }
     }
 }
 

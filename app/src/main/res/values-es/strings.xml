@@ -16,14 +16,25 @@
     <string name="master_switch_title">Mantener Video Boost siempre activo</string>
     <string name="master_switch_hint_disabled">Primero habilitá el servicio de accesibilidad</string>
 
-    <!-- Onboarding -->
+    <!-- Guía guiada -->
     <string name="setup_card_title">Guía de configuración</string>
     <string name="setup_done_hint">Servicio habilitado ✓. Tocá para repasar los pasos</string>
-    <string name="setup_step_1">Tocá el botón de abajo: abre los ajustes de Accesibilidad con Video Boost Siempre Activo resaltado.</string>
-    <string name="setup_step_2">Activá el servicio y confirmá.</string>
-    <string name="setup_step_3">Si Android dice \"Ajuste restringido\", abrí Información de la app, tocá el menú ⋮ (arriba a la derecha) → \"Permitir ajustes restringidos\", confirmá con tu huella y reintentá.</string>
-    <string name="btn_open_accessibility">Abrir ajustes de Accesibilidad</string>
-    <string name="btn_open_app_info">Abrir Información de la app (ajustes restringidos)</string>
+    <string name="guided_title">Configurémoslo</string>
+    <string name="guided_subtitle">Dos permisos rápidos y listo. Las advertencias que muestra Android en el camino son normales para este tipo de app; no pasa nada malo.</string>
+
+    <string name="guided_step1_title">Habilitá el servicio</string>
+    <string name="guided_step1_body">Tocá el botón de abajo. En Accesibilidad, activá \"Video Boost Siempre Activo\" (se abre resaltado) y confirmá.</string>
+    <string name="guided_step1_action">Abrir ajustes de Accesibilidad</string>
+    <string name="guided_step1_waiting">Esperando a que lo actives… activalo y volvé acá.</string>
+
+    <string name="guided_step2_title">Si se ve gris o deshabilitado</string>
+    <string name="guided_step2_body">Android lo llama \"ajuste restringido\" para apps instaladas fuera de la Play Store. Abrí Información de la app, tocá el menú ⋮ (arriba a la derecha), elegí \"Permitir ajustes restringidos\", confirmá con tu huella y después activá el servicio.</string>
+    <string name="guided_step2_action">Abrir Información de la app</string>
+
+    <string name="guided_playprotect">¿Instalaste el APK y Play Protect lo bloqueó? Tocá \"Más detalles\" y luego \"Instalar de todos modos\". Marca a toda app de accesibilidad instalada por fuera de Play.</string>
+
+    <string name="guided_done_title">Todo listo</string>
+    <string name="guided_done_body">Video Boost se enciende solo en la Cámara. Volvé cuando quieras a repasar estos pasos.</string>
 
     <!-- Acciones -->
     <string name="btn_try_now">Probar ahora</string>

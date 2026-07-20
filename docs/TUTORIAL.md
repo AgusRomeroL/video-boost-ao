@@ -12,10 +12,10 @@ A short, visual walkthrough. It takes about a minute.
 > for *any* app installed outside the Play Store that automates the screen
 > (Tasker, MacroDroid, etc. get the exact same ones):
 >
-> 1. **"App blocked by Play Protect"**: tap **More details → Install anyway**.
+> 1. **"App blocked by Play Protect"**: tap **More details, then Install anyway**.
 > 2. **"Restricted setting"** when enabling the accessibility service: open the
->    app's **App info**, tap the **⋮** menu → **Allow restricted settings**,
->    confirm with your fingerprint, then enable the service.
+>    app's **App info**, tap the **⋮** menu, choose **Allow restricted
+>    settings**, confirm with your fingerprint, then enable the service.
 >
 > The app only reads and taps controls *inside Pixel Camera*. It has no ads, no
 > analytics, and its only permission besides accessibility is internet access to
@@ -38,54 +38,49 @@ accessibility to automate another app's UI).
 
 ## Step by step
 
-### 1. Open the app: it tells you what's needed
+The app walks you through it. The setup guide stays available inside the app the
+whole time.
 
-Fresh install shows **Setup needed**. The master switch is off until the service
-is enabled. The **Setup guide** card lays out the three steps.
+### 1. Open the app
 
-![Setup needed](tutorial-1-setup.png)
+Fresh install shows a guided **"Let's set it up"** card with the two steps. The
+master switch stays off until the accessibility service is enabled.
+
+![Guided setup](tutorial-1-setup.png)
 
 ### 2. Tap "Open Accessibility settings"
 
 The app jumps you straight to Accessibility with **Video Boost Always-On**
-highlighted. On a fresh sideload it shows **"Controlled by Restricted Setting"**
-and is greyed out. That's the gate we need to lift.
+highlighted. Turn it on and confirm.
 
-![Accessibility, restricted](tutorial-2-accessibility-restricted.png)
+![Accessibility, highlighted](tutorial-2-accessibility.png)
 
-### 3. Tapping it shows the restricted-setting block
+### 3. If it's greyed out ("Restricted setting")
 
-Android explains it's blocking the permission. Tap **Close**; we lift the
-restriction next.
+On some installs Android greys the entry out and, if you tap it, shows this. It's
+the standard block for apps installed outside the Play Store, not a problem with
+this app. Tap **Close**, then lift the restriction next.
 
 ![Restricted setting dialog](tutorial-3-restricted-dialog.png)
 
-### 4. Open App info
+### 4. Allow restricted settings
 
-Back in the app, tap **Open App info (restricted settings)**. (This is the
-standard Android App info screen for Video Boost AO.)
+Back in the app tap **Open App info**. On the App info screen, tap the **⋮** menu
+(top right) and choose **Allow restricted settings**, then confirm with your
+fingerprint or PIN. Now repeat step 2 and the toggle will work.
 
 ![App info](tutorial-4-app-info.png)
 
-### 5. ⋮ menu → "Allow restricted settings"
+### 5. Done
 
-Tap the **⋮** menu (top right) and choose **Allow restricted settings**. Confirm
-with your fingerprint or PIN.
+Once the service is on, the app shows **Always-on**: Video Boost turns on by
+itself every time you open the Camera in video mode. The setup guide collapses to
+a checkmark you can reopen any time, and the master switch lets you pause the
+feature without touching accessibility settings.
 
-![Allow restricted settings](tutorial-5-allow-restricted.png)
+![Always-on](tutorial-5-active.png)
 
-### 6. Enable the service, and you're done
-
-Go back to Accessibility, turn **Video Boost Always-On** on, and confirm. The app
-now shows **Always-on**: Video Boost turns on by itself every time you open the
-Camera in video mode. The setup guide collapses to a checkmark you can reopen any
-time.
-
-![Always-on](tutorial-6-active.png)
-
-That's it. Open Pixel Camera in video mode and you'll see Video Boost switch on
-by itself. Use the master switch to pause it whenever you want, without going
-back into accessibility settings.
+Open Pixel Camera in video mode and you'll see Video Boost switch on by itself.
 
 ---
 
