@@ -10,7 +10,7 @@ import java.net.URL
 /**
  * Chequeo de actualizaciones contra GitHub Releases (sin dependencias:
  * HttpURLConnection + org.json). Falla en silencio (null) sin red o si la
- * API no responde — la app nunca se bloquea por esto.
+ * API no responde. La app nunca se bloquea por esto.
  */
 object UpdateChecker {
 

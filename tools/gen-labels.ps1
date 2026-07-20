@@ -93,7 +93,7 @@ $footer = @'
 
     /** contentDescription del boton "on" (sapphire_on_desc, p. ej. "Video
      *  Boost on"): identifica el boton correcto por significado, sin depender
-     *  de la posicion — imprescindible en layouts RTL donde el orden se invierte. */
+     *  de la posicion, imprescindible en layouts RTL donde el orden se invierte. */
     fun videoBoostOnDescs(lang: String): List<String> {
         val own = VIDEO_BOOST_ON_BY_LANG[normalize(lang)] ?: emptyList()
         val en = VIDEO_BOOST_ON_BY_LANG.getValue("en")
