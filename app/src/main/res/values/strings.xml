@@ -32,6 +32,10 @@
     <string name="cost_title">Heads-up: data &amp; storage</string>
     <string name="cost_body">Video Boost processes video in the cloud through Google Photos. Each video is stored twice and uses data. Always-on means more of both.</string>
 
+    <!-- Update -->
+    <string name="update_available">Update available: v%1$s</string>
+    <string name="btn_download_update">Download update</string>
+
     <!-- Pro-only -->
     <string name="pro_note">Works on Pixel Pro models with Video Boost (Pixel 8 Pro and newer Pro models).</string>
 </resources>
