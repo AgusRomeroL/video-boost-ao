@@ -127,9 +127,7 @@ private fun MainScreen() {
                 },
             )
 
-            if (!serviceEnabled) {
-                SetupCard(context)
-            } else {
+            if (serviceEnabled) {
                 FilledTonalButton(
                     onClick = {
                         context.startActivity(
@@ -142,6 +140,10 @@ private fun MainScreen() {
                     Text(stringResource(R.string.btn_try_now))
                 }
             }
+
+            // Guía de configuración: siempre visible. Expandida cuando falta
+            // configurar; colapsada (consultable) cuando el servicio ya está activo.
+            SetupCard(context, serviceEnabled)
 
             CostCard()
 
@@ -270,45 +272,71 @@ private fun MasterSwitchCard(
 }
 
 @Composable
-private fun SetupCard(context: Context) {
+private fun SetupCard(context: Context, serviceEnabled: Boolean) {
+    var expanded by remember(serviceEnabled) { mutableStateOf(!serviceEnabled) }
+
     Card(
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            containerColor = if (serviceEnabled) {
+                MaterialTheme.colorScheme.surfaceContainerLow
+            } else {
+                MaterialTheme.colorScheme.secondaryContainer
+            },
         ),
+        onClick = { expanded = !expanded },
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(R.string.setup_card_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-            NumberedStep(1, stringResource(R.string.setup_step_1))
-            NumberedStep(2, stringResource(R.string.setup_step_2))
-            NumberedStep(3, stringResource(R.string.setup_step_3))
-
-            Button(
-                onClick = { openAccessibilitySettingsHighlighted(context) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.btn_open_accessibility))
-            }
-            OutlinedButton(
-                onClick = {
-                    context.startActivity(
-                        Intent(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            Uri.fromParts("package", context.packageName, null),
-                        )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.setup_card_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
                     )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.btn_open_app_info))
+                    if (serviceEnabled) {
+                        Text(
+                            text = stringResource(R.string.setup_done_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Text(
+                    text = if (expanded) "▲" else "▼",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            if (expanded) {
+                NumberedStep(1, stringResource(R.string.setup_step_1))
+                NumberedStep(2, stringResource(R.string.setup_step_2))
+                NumberedStep(3, stringResource(R.string.setup_step_3))
+
+                Button(
+                    onClick = { openAccessibilitySettingsHighlighted(context) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.btn_open_accessibility))
+                }
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null),
+                            )
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.btn_open_app_info))
+                }
             }
         }
     }
