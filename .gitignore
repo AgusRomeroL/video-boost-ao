@@ -1,0 +1,21 @@
+# Build
+build/
+app/build/
+.gradle/
+
+# Local config (rutas de SDK, credenciales de firma)
+local.properties
+keystore.properties
+*.keystore
+*.jks
+
+# IDE
+.idea/
+*.iml
+
+# Artefactos de análisis (dump de recursos de Pixel Camera, APK pulled)
+tools/gcam-base.apk
+tools/gcam-resources.txt
+
+# Artefactos de investigacion (volcados de paginas)
+pixel_*.html

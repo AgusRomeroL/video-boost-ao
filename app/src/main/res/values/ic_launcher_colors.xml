@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Celeste del icono de Video Boost (muestreado de la referencia del usuario) -->
+    <color name="ic_launcher_background">#55BFEF</color>
+    <!-- Navy del glifo -->
+    <color name="ic_launcher_glyph">#0E2A3D</color>
+</resources>
