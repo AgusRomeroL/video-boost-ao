@@ -156,7 +156,7 @@ read the screen). They can't tell that this app is harmless, so they show an
 
 To avoid it, the app **turns its own accessibility service off when it detects a
 sensitive app in the foreground** (`disableSelf()`), so you're never blocked.
-When it does, it posts a **reminder notification** — tap it (once you're done)
+When it does, it posts a **reminder notification**: tap it (once you're done)
 to turn Video Boost back on in one step.
 
 Why it can't re-enable itself automatically: Android forbids any app from
@@ -168,8 +168,8 @@ no-dependency half: automatic off + a reminder to turn it back on.
 The built-in list
 ([`SensitiveApps.kt`](app/src/main/java/com/agustin/videoboostao/SensitiveApps.kt))
 covers ~330 apps: the major banks of every country where the Pixel is officially
-sold, plus global fintech, crypto wallets, authenticators, and password managers
-— every package verified against its Google Play listing. In the app you can:
+sold, plus global fintech, crypto wallets, authenticators, and password managers.
+Every package is verified against its Google Play listing. In the app you can:
 
 - Toggle the auto-off behavior on/off.
 - **Add your own apps** ("Choose sensitive apps") if something isn't covered.
