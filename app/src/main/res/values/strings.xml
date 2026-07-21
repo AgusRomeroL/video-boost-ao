@@ -37,11 +37,22 @@
     <string name="guided_done_body">Video Boost turns on by itself in the Camera. Come back any time to review these steps.</string>
     <string name="guided_disabled_by_bank">The service turned off for a banking app. Turn it back on above when you want Video Boost again.</string>
 
-    <!-- Banking apps -->
-    <string name="bank_card_title">Banking apps</string>
-    <string name="bank_card_body">Banks block phones that have an active accessibility service (anti-fraud). To avoid that, this app turns itself off when it detects one of your banking apps, so you\'re never blocked. Turn it back on when you want Video Boost again.</string>
-    <string name="bank_auto_switch">Turn off automatically for banking apps</string>
+    <!-- Sensitive apps -->
+    <string name="bank_card_title">Sensitive apps</string>
+    <string name="bank_card_body">Banks and other sensitive apps block phones that have an active accessibility service (anti-fraud). To avoid that, this app turns itself off when it detects one, so you\'re never blocked. A reminder notification lets you turn it back on with one tap when you\'re done.</string>
+    <string name="bank_auto_switch">Turn off automatically for sensitive apps</string>
     <string name="bank_turn_off_now">Turn off the service now</string>
+    <string name="bank_manage_apps">Choose sensitive apps</string>
+    <string name="bank_manage_title">Sensitive apps</string>
+    <string name="bank_manage_hint">The service turns off automatically when any of these opens. A list of banks is built in; add your own below.</string>
+    <string name="bank_manage_done">Done</string>
+
+    <!-- Notification -->
+    <string name="notif_channel_name">Re-enable reminders</string>
+    <string name="notif_channel_desc">Reminds you to turn Video Boost back on after a sensitive app.</string>
+    <string name="notif_title">Video Boost is off</string>
+    <string name="notif_text">It turned off because a sensitive app opened. Tap to turn it back on when you\'re done.</string>
+    <string name="notif_text_named">It turned off for %1$s. Tap to turn it back on when you\'re done.</string>
 
     <!-- Acciones -->
     <string name="btn_try_now">Try it now</string>

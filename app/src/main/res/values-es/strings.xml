@@ -37,11 +37,22 @@
     <string name="guided_done_body">Video Boost se enciende solo en la Cámara. Volvé cuando quieras a repasar estos pasos.</string>
     <string name="guided_disabled_by_bank">El servicio se apagó por una app bancaria. Volvé a encenderlo arriba cuando quieras Video Boost.</string>
 
-    <!-- Apps bancarias -->
-    <string name="bank_card_title">Apps bancarias</string>
-    <string name="bank_card_body">Los bancos bloquean el teléfono si hay un servicio de accesibilidad activo (anti-fraude). Para evitarlo, esta app se apaga sola cuando detecta una de tus apps de banco, así nunca te bloquea. Volvé a encenderla cuando quieras Video Boost.</string>
-    <string name="bank_auto_switch">Apagar automáticamente con apps bancarias</string>
+    <!-- Apps sensibles -->
+    <string name="bank_card_title">Apps sensibles</string>
+    <string name="bank_card_body">Los bancos y otras apps sensibles bloquean el teléfono si hay un servicio de accesibilidad activo (anti-fraude). Para evitarlo, esta app se apaga sola cuando detecta una, así nunca te bloquea. Una notificación te deja reactivarla con un toque cuando termines.</string>
+    <string name="bank_auto_switch">Apagar automáticamente con apps sensibles</string>
     <string name="bank_turn_off_now">Apagar el servicio ahora</string>
+    <string name="bank_manage_apps">Elegir apps sensibles</string>
+    <string name="bank_manage_title">Apps sensibles</string>
+    <string name="bank_manage_hint">El servicio se apaga solo cuando se abre alguna de estas. Trae una lista de bancos integrada; agregá las tuyas abajo.</string>
+    <string name="bank_manage_done">Listo</string>
+
+    <!-- Notificación -->
+    <string name="notif_channel_name">Recordatorios de reactivación</string>
+    <string name="notif_channel_desc">Te recuerda encender Video Boost después de una app sensible.</string>
+    <string name="notif_title">Video Boost está apagado</string>
+    <string name="notif_text">Se apagó porque se abrió una app sensible. Tocá para reactivarlo cuando termines.</string>
+    <string name="notif_text_named">Se apagó por %1$s. Tocá para reactivarlo cuando termines.</string>
 
     <!-- Acciones -->
     <string name="btn_try_now">Probar ahora</string>

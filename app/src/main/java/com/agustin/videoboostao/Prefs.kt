@@ -14,6 +14,7 @@ object Prefs {
     private const val KEY_FEATURE_ENABLED = "feature_enabled"
     private const val KEY_AUTO_DISABLE_BANKS = "auto_disable_banks"
     private const val KEY_DISABLED_BY_BANK = "disabled_by_bank"
+    private const val KEY_SENSITIVE_USER_APPS = "sensitive_user_apps"
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -39,5 +40,13 @@ object Prefs {
 
     fun setDisabledByBank(context: Context, value: Boolean) {
         prefs(context).edit().putBoolean(KEY_DISABLED_BY_BANK, value).apply()
+    }
+
+    /** Packages que el usuario marcó como "app sensible" (además de la lista integrada). */
+    fun sensitiveUserApps(context: Context): Set<String> =
+        prefs(context).getStringSet(KEY_SENSITIVE_USER_APPS, emptySet()) ?: emptySet()
+
+    fun setSensitiveUserApps(context: Context, apps: Set<String>) {
+        prefs(context).edit().putStringSet(KEY_SENSITIVE_USER_APPS, apps).apply()
     }
 }
