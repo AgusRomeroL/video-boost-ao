@@ -93,11 +93,15 @@ private fun MainScreen() {
 
     var serviceEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
     var featureEnabled by remember { mutableStateOf(Prefs.featureEnabled(context)) }
+    var autoDisableBanks by remember { mutableStateOf(Prefs.autoDisableForBanks(context)) }
+    var disabledByBank by remember { mutableStateOf(Prefs.disabledByBank(context)) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
     LifecycleResumeEffect(Unit) {
         serviceEnabled = isAccessibilityServiceEnabled(context)
         featureEnabled = Prefs.featureEnabled(context)
+        autoDisableBanks = Prefs.autoDisableForBanks(context)
+        disabledByBank = Prefs.disabledByBank(context)
         onPauseOrDispose { }
     }
 
@@ -141,9 +145,23 @@ private fun MainScreen() {
                 }
             }
 
+            if (serviceEnabled) {
+                BankCard(
+                    autoDisable = autoDisableBanks,
+                    onToggleAuto = { enabled ->
+                        autoDisableBanks = enabled
+                        Prefs.setAutoDisableForBanks(context, enabled)
+                    },
+                    onTurnOffNow = {
+                        VideoBoostService.instance?.disableSelf()
+                        serviceEnabled = false
+                    },
+                )
+            }
+
             // Guía de configuración: siempre visible. Expandida cuando falta
             // configurar; colapsada (consultable) cuando el servicio ya está activo.
-            SetupCard(context, serviceEnabled)
+            SetupCard(context, serviceEnabled, disabledByBank)
 
             CostCard()
 
@@ -272,7 +290,7 @@ private fun MasterSwitchCard(
 }
 
 @Composable
-private fun SetupCard(context: Context, serviceEnabled: Boolean) {
+private fun SetupCard(context: Context, serviceEnabled: Boolean, disabledByBank: Boolean) {
     if (serviceEnabled) {
         // Servicio listo: guía colapsada y reconsultable.
         var expanded by remember { mutableStateOf(false) }
@@ -328,6 +346,14 @@ private fun SetupCard(context: Context, serviceEnabled: Boolean) {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                 )
+                if (disabledByBank) {
+                    Text(
+                        text = stringResource(R.string.guided_disabled_by_bank),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                }
                 Text(
                     text = stringResource(R.string.guided_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
@@ -444,6 +470,49 @@ private fun UpdateCard(update: UpdateChecker.Update) {
                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.pageUrl)))
             }) {
                 Text(stringResource(R.string.btn_download_update))
+            }
+        }
+    }
+}
+
+@Composable
+private fun BankCard(
+    autoDisable: Boolean,
+    onToggleAuto: (Boolean) -> Unit,
+    onTurnOffNow: () -> Unit,
+) {
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.bank_card_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = stringResource(R.string.bank_card_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.bank_auto_switch),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(12.dp))
+                Switch(checked = autoDisable, onCheckedChange = onToggleAuto)
+            }
+            OutlinedButton(onClick = onTurnOffNow, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.bank_turn_off_now))
             }
         }
     }

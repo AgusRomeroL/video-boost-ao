@@ -35,6 +35,13 @@
 
     <string name="guided_done_title">You\'re all set</string>
     <string name="guided_done_body">Video Boost turns on by itself in the Camera. Come back any time to review these steps.</string>
+    <string name="guided_disabled_by_bank">The service turned off for a banking app. Turn it back on above when you want Video Boost again.</string>
+
+    <!-- Banking apps -->
+    <string name="bank_card_title">Banking apps</string>
+    <string name="bank_card_body">Banks block phones that have an active accessibility service (anti-fraud). To avoid that, this app turns itself off when it detects one of your banking apps, so you\'re never blocked. Turn it back on when you want Video Boost again.</string>
+    <string name="bank_auto_switch">Turn off automatically for banking apps</string>
+    <string name="bank_turn_off_now">Turn off the service now</string>
 
     <!-- Acciones -->
     <string name="btn_try_now">Try it now</string>
