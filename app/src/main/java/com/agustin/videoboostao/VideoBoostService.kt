@@ -57,6 +57,7 @@ class VideoBoostService : AccessibilityService() {
         instance = this
         // Si volvió a habilitarse, ya no está "apagado por el banco".
         Prefs.setDisabledByBank(this, false)
+        Notifications.cancel(this)
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -78,14 +79,17 @@ class VideoBoostService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val pkg = event.packageName?.toString() ?: return
 
-        // Auto-apagado para apps bancarias, antes que todo (incluso en pausa):
-        // los bancos bloquean cualquier servicio de accesibilidad activo, así
-        // que nos sacamos de la lista con disableSelf() al detectar una.
+        // Auto-apagado para apps sensibles (bancos, fintech, wallets,
+        // autenticadores...), antes que todo (incluso en pausa): estas apps
+        // bloquean cualquier servicio de accesibilidad activo, así que nos
+        // sacamos de la lista con disableSelf() al detectar una.
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
-            Prefs.autoDisableForBanks(this) && BankApps.isBank(pkg)
+            Prefs.autoDisableForBanks(this) &&
+            (SensitiveApps.isSensitive(this, pkg) || SensitiveApps.isSensitiveByPrefix(pkg))
         ) {
-            Log.i(TAG, "App bancaria en primer plano ($pkg); deshabilitando el servicio")
+            Log.i(TAG, "App sensible en primer plano ($pkg); deshabilitando el servicio")
             Prefs.setDisabledByBank(this, true)
+            Notifications.showReenableReminder(this, appLabel(pkg))
             disableSelf()
             return
         }
@@ -322,6 +326,14 @@ class VideoBoostService : AccessibilityService() {
 
     override fun onInterrupt() {
         handler.removeCallbacks(attemptRunnable)
+    }
+
+    /** Nombre visible de una app instalada, o null si no se puede resolver. */
+    private fun appLabel(pkg: String): String? = try {
+        val pm = packageManager
+        pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
+    } catch (_: Exception) {
+        null
     }
 
     override fun onDestroy() {

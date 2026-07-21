@@ -147,26 +147,33 @@ Found a bug or a language/Feature-Drop regression? Please
 your Pixel model, Android version, Pixel Camera version, and `adb logcat -s
 VideoBoostAO` output if you can.
 
-## Banking apps
+## Sensitive apps (banking, etc.)
 
-Banking apps refuse to run when any non-allowlisted accessibility service is
-**enabled** (an anti-fraud measure, since that API can read the screen). They
-can't tell that this app is harmless, so they show a "uninstall this app" block.
+Banks and other sensitive apps refuse to run when any non-allowlisted
+accessibility service is **enabled** (an anti-fraud measure, since that API can
+read the screen). They can't tell that this app is harmless, so they show an
+"uninstall this app" block.
 
 To avoid it, the app **turns its own accessibility service off when it detects a
-banking app in the foreground** (`disableSelf()`), so the bank never blocks you.
-You turn it back on with one tap when you want Video Boost again.
+sensitive app in the foreground** (`disableSelf()`), so you're never blocked.
+When it does, it posts a **reminder notification** — tap it (once you're done)
+to turn Video Boost back on in one step.
 
 Why it can't re-enable itself automatically: Android forbids any app from
 enabling its own accessibility service (only you, in Settings, or ADB/root can),
-and a disabled service can't detect when you leave the bank. True hands-free
+and a disabled service can't detect when you leave the app. True hands-free
 both-ways toggling is only possible with root or Shizuku. This app does the
-no-dependency half: automatic off, one-tap on.
+no-dependency half: automatic off + a reminder to turn it back on.
 
-The detected banks live in
-[`BankApps.kt`](app/src/main/java/com/agustin/videoboostao/BankApps.kt) (seeded
-with common Mexican banks). If yours isn't covered, add its package name there.
-You can also turn the auto-off behavior off in the app.
+The built-in list
+([`SensitiveApps.kt`](app/src/main/java/com/agustin/videoboostao/SensitiveApps.kt))
+covers ~330 apps: the major banks of every country where the Pixel is officially
+sold, plus global fintech, crypto wallets, authenticators, and password managers
+— every package verified against its Google Play listing. In the app you can:
+
+- Toggle the auto-off behavior on/off.
+- **Add your own apps** ("Choose sensitive apps") if something isn't covered.
+- Turn the service off on demand.
 
 ## If it stops working (maintenance)
 

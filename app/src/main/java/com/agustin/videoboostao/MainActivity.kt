@@ -1,14 +1,19 @@
 package com.agustin.videoboostao
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,15 +22,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +42,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -49,12 +59,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
+    private val requestNotif =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
         enableEdgeToEdge()
         setContent {
             AppTheme {
@@ -95,6 +117,7 @@ private fun MainScreen() {
     var featureEnabled by remember { mutableStateOf(Prefs.featureEnabled(context)) }
     var autoDisableBanks by remember { mutableStateOf(Prefs.autoDisableForBanks(context)) }
     var disabledByBank by remember { mutableStateOf(Prefs.disabledByBank(context)) }
+    var showAppPicker by remember { mutableStateOf(false) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
     LifecycleResumeEffect(Unit) {
@@ -156,6 +179,7 @@ private fun MainScreen() {
                         VideoBoostService.instance?.disableSelf()
                         serviceEnabled = false
                     },
+                    onManageApps = { showAppPicker = true },
                 )
             }
 
@@ -186,6 +210,10 @@ private fun MainScreen() {
 
             Spacer(Modifier.height(8.dp))
         }
+    }
+
+    if (showAppPicker) {
+        AppPickerDialog(context = context, onDismiss = { showAppPicker = false })
     }
 }
 
@@ -480,6 +508,7 @@ private fun BankCard(
     autoDisable: Boolean,
     onToggleAuto: (Boolean) -> Unit,
     onTurnOffNow: () -> Unit,
+    onManageApps: () -> Unit,
 ) {
     Card(
         shape = MaterialTheme.shapes.extraLarge,
@@ -511,8 +540,84 @@ private fun BankCard(
                 Spacer(Modifier.width(12.dp))
                 Switch(checked = autoDisable, onCheckedChange = onToggleAuto)
             }
+            OutlinedButton(onClick = onManageApps, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.bank_manage_apps))
+            }
             OutlinedButton(onClick = onTurnOffNow, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.bank_turn_off_now))
+            }
+        }
+    }
+}
+
+private data class InstalledApp(val pkg: String, val label: String)
+
+private suspend fun loadInstalledApps(context: Context): List<InstalledApp> =
+    withContext(Dispatchers.IO) {
+        val pm = context.packageManager
+        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        pm.queryIntentActivities(intent, 0)
+            .asSequence()
+            .map { it.activityInfo.packageName }
+            .filter { it != context.packageName }
+            .distinct()
+            .map { pkg ->
+                val label = try {
+                    pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
+                } catch (_: Exception) { pkg }
+                InstalledApp(pkg, label)
+            }
+            .sortedBy { it.label.lowercase() }
+            .toList()
+    }
+
+@Composable
+private fun AppPickerDialog(context: Context, onDismiss: () -> Unit) {
+    var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
+    var selected by remember { mutableStateOf(Prefs.sensitiveUserApps(context)) }
+    LaunchedEffect(Unit) { apps = loadInstalledApps(context) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = stringResource(R.string.bank_manage_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.bank_manage_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+                LazyColumn(modifier = Modifier.heightIn(max = 380.dp).weight(1f, fill = false)) {
+                    items(apps, key = { it.pkg }) { app ->
+                        val checked = app.pkg in selected
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = if (checked) selected - app.pkg else selected + app.pkg
+                                    Prefs.setSensitiveUserApps(context, selected)
+                                }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(checked = checked, onCheckedChange = null)
+                            Spacer(Modifier.width(12.dp))
+                            Text(text = app.label, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text(stringResource(R.string.bank_manage_done))
+                }
             }
         }
     }
