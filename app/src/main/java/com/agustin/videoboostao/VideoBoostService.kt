@@ -44,6 +44,19 @@ class VideoBoostService : AccessibilityService() {
          *  de SystemUI con la cámara aún visible; resetear ahí re-dispara la
          *  activación en bucle. */
         private const val RESET_CONFIRM_MS = 600L
+
+        /** Instancia viva del servicio, para que la UI pueda deshabilitarlo
+         *  (una app solo puede apagar su propio servicio con `disableSelf`). */
+        @Volatile
+        var instance: VideoBoostService? = null
+            private set
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        instance = this
+        // Si volvió a habilitarse, ya no está "apagado por el banco".
+        Prefs.setDisabledByBank(this, false)
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -63,11 +76,23 @@ class VideoBoostService : AccessibilityService() {
     private var attempts = 0
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        val pkg = event.packageName?.toString() ?: return
+
+        // Auto-apagado para apps bancarias, antes que todo (incluso en pausa):
+        // los bancos bloquean cualquier servicio de accesibilidad activo, así
+        // que nos sacamos de la lista con disableSelf() al detectar una.
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+            Prefs.autoDisableForBanks(this) && BankApps.isBank(pkg)
+        ) {
+            Log.i(TAG, "App bancaria en primer plano ($pkg); deshabilitando el servicio")
+            Prefs.setDisabledByBank(this, true)
+            disableSelf()
+            return
+        }
+
         // Interruptor maestro de la app: pausado = no hacer nada, sin
         // necesidad de deshabilitar el servicio de accesibilidad.
         if (!Prefs.featureEnabled(this)) return
-
-        val pkg = event.packageName?.toString() ?: return
 
         // Sin filtro de package en el manifest: el filtrado es acá. Los
         // eventos de otras apps solo sirven para detectar que la cámara
@@ -300,6 +325,7 @@ class VideoBoostService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        if (instance === this) instance = null
         handler.removeCallbacks(attemptRunnable)
         super.onDestroy()
     }

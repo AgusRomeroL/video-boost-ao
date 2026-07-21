@@ -20,8 +20,8 @@ android {
         applicationId = "com.agustin.videoboostao"
         minSdk = 33
         targetSdk = 36
-        versionCode = 5
-        versionName = "2.3"
+        versionCode = 6
+        versionName = "2.4"
     }
 
     signingConfigs {
@@ -46,6 +46,12 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    lint {
+        // El chequeo lint-vital escribe un .dat que Google Drive suele bloquear
+        // (falla al hashear MD5). No es crítico para esta app; se desactiva.
+        checkReleaseBuilds = false
     }
 
     compileOptions {
