@@ -44,8 +44,10 @@
     <string name="bank_turn_off_now">Apagar el servicio ahora</string>
     <string name="bank_manage_apps">Elegir apps sensibles</string>
     <string name="bank_manage_title">Apps sensibles</string>
-    <string name="bank_manage_hint">El servicio se apaga solo cuando se abre alguna de estas. Trae una lista de bancos integrada; agregá las tuyas abajo.</string>
-    <string name="bank_manage_done">Listo</string>
+    <string name="bank_manage_hint">El servicio se apaga solo cuando se abre una app marcada. Los bancos y otras apps sensibles vienen marcados por defecto; desmarcá los que no quieras o marcá más abajo.</string>
+    <string name="bank_manage_search">Buscar apps</string>
+    <string name="bank_manage_section_auto">Marcadas automáticamente</string>
+    <string name="bank_manage_section_all">Todas las apps</string>
 
     <!-- Notificación -->
     <string name="notif_channel_name">Recordatorios de reactivación</string>

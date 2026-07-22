@@ -4,12 +4,14 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,7 +24,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,14 +36,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -59,7 +64,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -80,9 +84,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppTheme {
-                MainScreen()
+                App()
             }
         }
+    }
+}
+
+private enum class Screen { Main, SensitiveApps }
+
+@Composable
+private fun App() {
+    var screen by remember { mutableStateOf(Screen.Main) }
+    when (screen) {
+        Screen.Main -> MainScreen(onManageApps = { screen = Screen.SensitiveApps })
+        Screen.SensitiveApps -> SensitiveAppsScreen(onBack = { screen = Screen.Main })
     }
 }
 
@@ -110,14 +125,13 @@ private val ExpressiveShapes = androidx.compose.material3.Shapes(
 )
 
 @Composable
-private fun MainScreen() {
+private fun MainScreen(onManageApps: () -> Unit) {
     val context = LocalContext.current
 
     var serviceEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
     var featureEnabled by remember { mutableStateOf(Prefs.featureEnabled(context)) }
     var autoDisableBanks by remember { mutableStateOf(Prefs.autoDisableForBanks(context)) }
     var disabledByBank by remember { mutableStateOf(Prefs.disabledByBank(context)) }
-    var showAppPicker by remember { mutableStateOf(false) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
     LifecycleResumeEffect(Unit) {
@@ -179,7 +193,7 @@ private fun MainScreen() {
                         VideoBoostService.instance?.disableSelf()
                         serviceEnabled = false
                     },
-                    onManageApps = { showAppPicker = true },
+                    onManageApps = onManageApps,
                 )
             }
 
@@ -210,10 +224,6 @@ private fun MainScreen() {
 
             Spacer(Modifier.height(8.dp))
         }
-    }
-
-    if (showAppPicker) {
-        AppPickerDialog(context = context, onDismiss = { showAppPicker = false })
     }
 }
 
@@ -550,76 +560,140 @@ private fun BankCard(
     }
 }
 
-private data class InstalledApp(val pkg: String, val label: String)
+private data class InstalledApp(val pkg: String, val label: String, val builtin: Boolean)
 
 private suspend fun loadInstalledApps(context: Context): List<InstalledApp> =
     withContext(Dispatchers.IO) {
         val pm = context.packageManager
-        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-        pm.queryIntentActivities(intent, 0)
-            .asSequence()
+        // Apps que el usuario ve: las que puede abrir (ícono de lanzador) + las
+        // que instaló él (no de sistema, o system-app actualizada) + cualquier
+        // sensible integrada instalada (para que un banco sin lanzador aparezca).
+        val launcher = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val launcherPkgs = pm.queryIntentActivities(launcher, 0)
             .map { it.activityInfo.packageName }
+        val userInstalled = pm.getInstalledApplications(0).filter { info ->
+            val system = info.flags and ApplicationInfo.FLAG_SYSTEM != 0
+            val updatedSystem = info.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0
+            !system || updatedSystem || SensitiveApps.isBuiltinSensitive(info.packageName)
+        }.map { it.packageName }
+        (launcherPkgs + userInstalled)
+            .asSequence()
             .filter { it != context.packageName }
             .distinct()
             .map { pkg ->
                 val label = try {
                     pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
                 } catch (_: Exception) { pkg }
-                InstalledApp(pkg, label)
+                InstalledApp(pkg, label, SensitiveApps.isBuiltinSensitive(pkg))
             }
             .sortedBy { it.label.lowercase() }
             .toList()
     }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AppPickerDialog(context: Context, onDismiss: () -> Unit) {
+private fun SensitiveAppsScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
     var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
-    var selected by remember { mutableStateOf(Prefs.sensitiveUserApps(context)) }
+    var userApps by remember { mutableStateOf(Prefs.sensitiveUserApps(context)) }
+    var excluded by remember { mutableStateOf(Prefs.sensitiveExcludedApps(context)) }
+    var query by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { apps = loadInstalledApps(context) }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    BackHandler { onBack() }
+
+    fun isOn(app: InstalledApp): Boolean =
+        app.pkg !in excluded && (app.builtin || app.pkg in userApps)
+
+    fun toggle(app: InstalledApp) {
+        if (isOn(app)) {
+            userApps = userApps - app.pkg
+            if (app.builtin) excluded = excluded + app.pkg
+        } else {
+            excluded = excluded - app.pkg
+            if (!app.builtin) userApps = userApps + app.pkg
+        }
+        Prefs.setSensitiveUserApps(context, userApps)
+        Prefs.setSensitiveExcludedApps(context, excluded)
+    }
+
+    val filtered = apps.filter { it.label.contains(query, ignoreCase = true) }
+    val autoApps = filtered.filter { it.builtin }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.bank_manage_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Text("←", style = MaterialTheme.typography.headlineSmall)
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp),
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = stringResource(R.string.bank_manage_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = stringResource(R.string.bank_manage_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(12.dp))
-                LazyColumn(modifier = Modifier.heightIn(max = 380.dp).weight(1f, fill = false)) {
-                    items(apps, key = { it.pkg }) { app ->
-                        val checked = app.pkg in selected
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    selected = if (checked) selected - app.pkg else selected + app.pkg
-                                    Prefs.setSensitiveUserApps(context, selected)
-                                }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(checked = checked, onCheckedChange = null)
-                            Spacer(Modifier.width(12.dp))
-                            Text(text = app.label, style = MaterialTheme.typography.bodyLarge)
-                        }
+            Text(
+                text = stringResource(R.string.bank_manage_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text(stringResource(R.string.bank_manage_search)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(8.dp))
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                if (autoApps.isNotEmpty()) {
+                    item(key = "header_auto") {
+                        AppPickerSectionHeader(stringResource(R.string.bank_manage_section_auto))
+                    }
+                    items(autoApps, key = { "auto_" + it.pkg }) { app ->
+                        AppPickerRow(app = app, checked = isOn(app), onToggle = { toggle(app) })
                     }
                 }
-                Spacer(Modifier.height(8.dp))
-                Button(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                    Text(stringResource(R.string.bank_manage_done))
+                item(key = "header_all") {
+                    AppPickerSectionHeader(stringResource(R.string.bank_manage_section_all))
+                }
+                items(filtered, key = { "all_" + it.pkg }) { app ->
+                    AppPickerRow(app = app, checked = isOn(app), onToggle = { toggle(app) })
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AppPickerSectionHeader(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun AppPickerRow(app: InstalledApp, checked: Boolean, onToggle: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() }
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null)
+        Spacer(Modifier.width(12.dp))
+        Text(text = app.label, style = MaterialTheme.typography.bodyLarge)
     }
 }
 

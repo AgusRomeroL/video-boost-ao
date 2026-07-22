@@ -15,6 +15,7 @@ object Prefs {
     private const val KEY_AUTO_DISABLE_BANKS = "auto_disable_banks"
     private const val KEY_DISABLED_BY_BANK = "disabled_by_bank"
     private const val KEY_SENSITIVE_USER_APPS = "sensitive_user_apps"
+    private const val KEY_SENSITIVE_EXCLUDED_APPS = "sensitive_excluded_apps"
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -48,5 +49,16 @@ object Prefs {
 
     fun setSensitiveUserApps(context: Context, apps: Set<String>) {
         prefs(context).edit().putStringSet(KEY_SENSITIVE_USER_APPS, apps).apply()
+    }
+
+    /**
+     * Packages pre-marcados (lista integrada o prefijo) que el usuario apagó
+     * explícitamente: son la excepción que gana sobre la marca por defecto.
+     */
+    fun sensitiveExcludedApps(context: Context): Set<String> =
+        prefs(context).getStringSet(KEY_SENSITIVE_EXCLUDED_APPS, emptySet()) ?: emptySet()
+
+    fun setSensitiveExcludedApps(context: Context, apps: Set<String>) {
+        prefs(context).edit().putStringSet(KEY_SENSITIVE_EXCLUDED_APPS, apps).apply()
     }
 }

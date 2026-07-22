@@ -44,8 +44,10 @@
     <string name="bank_turn_off_now">Turn off the service now</string>
     <string name="bank_manage_apps">Choose sensitive apps</string>
     <string name="bank_manage_title">Sensitive apps</string>
-    <string name="bank_manage_hint">The service turns off automatically when any of these opens. A list of banks is built in; add your own below.</string>
-    <string name="bank_manage_done">Done</string>
+    <string name="bank_manage_hint">The service turns off automatically when a checked app opens. Banks and other sensitive apps are checked by default; uncheck any you don\'t want, or check more below.</string>
+    <string name="bank_manage_search">Search apps</string>
+    <string name="bank_manage_section_auto">Automatically flagged</string>
+    <string name="bank_manage_section_all">All apps</string>
 
     <!-- Notification -->
     <string name="notif_channel_name">Re-enable reminders</string>
