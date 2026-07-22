@@ -18,8 +18,19 @@ import android.content.Context
  */
 object SensitiveApps {
 
-    fun isSensitive(context: Context, pkg: String): Boolean =
-        pkg in BUILTIN || pkg in Prefs.sensitiveUserApps(context)
+    /**
+     * ¿El servicio debe apagarse con este package? Es sensible si viene marcado
+     * por la lista integrada/prefijo o lo agregó el usuario, salvo que el usuario
+     * lo haya apagado explícitamente (exclusión gana sobre la marca por defecto).
+     */
+    fun isSensitive(context: Context, pkg: String): Boolean {
+        if (pkg in Prefs.sensitiveExcludedApps(context)) return false
+        return isBuiltinSensitive(pkg) || pkg in Prefs.sensitiveUserApps(context)
+    }
+
+    /** Marcado por defecto por la app (lista integrada o prefijo de banco). */
+    fun isBuiltinSensitive(pkg: String): Boolean =
+        pkg in BUILTIN || PREFIXES.any { pkg.startsWith(it) }
 
     /** Prefijos con nombre de banco muy distintivo (cubre variantes regionales). */
     private val PREFIXES = listOf(
@@ -33,8 +44,6 @@ object SensitiveApps {
         "com.scotiabank",
         "com.revolut",
     )
-
-    fun isSensitiveByPrefix(pkg: String): Boolean = PREFIXES.any { pkg.startsWith(it) }
 
     // Lista integrada (verificada via Google Play). Ordenada por package.
     val BUILTIN: Set<String> = setOf(

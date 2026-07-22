@@ -85,7 +85,7 @@ class VideoBoostService : AccessibilityService() {
         // sacamos de la lista con disableSelf() al detectar una.
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
             Prefs.autoDisableForBanks(this) &&
-            (SensitiveApps.isSensitive(this, pkg) || SensitiveApps.isSensitiveByPrefix(pkg))
+            SensitiveApps.isSensitive(this, pkg)
         ) {
             Log.i(TAG, "App sensible en primer plano ($pkg); deshabilitando el servicio")
             Prefs.setDisabledByBank(this, true)
