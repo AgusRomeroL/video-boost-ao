@@ -6,6 +6,20 @@
     <!-- Recordatorio para reactivar tras una app sensible (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!--
+      Visibilidad de paquetes (Android 11+): sin esto, PackageManager solo ve
+      un puñado de apps y el selector de apps sensibles queda incompleto.
+      Declaramos el intent de lanzador para ver TODAS las apps del cajón (las
+      que el usuario ve), sin recurrir a QUERY_ALL_PACKAGES (marcado como
+      anti-feature en F-Droid/IzzyOnDroid).
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
