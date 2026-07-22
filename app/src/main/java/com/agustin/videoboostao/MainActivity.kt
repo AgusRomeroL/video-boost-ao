@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -18,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +36,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.IconButton
@@ -565,19 +566,14 @@ private data class InstalledApp(val pkg: String, val label: String, val builtin:
 private suspend fun loadInstalledApps(context: Context): List<InstalledApp> =
     withContext(Dispatchers.IO) {
         val pm = context.packageManager
-        // Apps que el usuario ve: las que puede abrir (ícono de lanzador) + las
-        // que instaló él (no de sistema, o system-app actualizada) + cualquier
-        // sensible integrada instalada (para que un banco sin lanzador aparezca).
+        // Apps que el usuario ve: todas las del cajón (ícono de lanzador). El
+        // <queries> del manifest las hace visibles pese al filtrado de paquetes
+        // de Android 11+. Los bancos/sensibles instalados también tienen
+        // lanzador, así que caen aquí y se marcan con el flag builtin.
         val launcher = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-        val launcherPkgs = pm.queryIntentActivities(launcher, 0)
-            .map { it.activityInfo.packageName }
-        val userInstalled = pm.getInstalledApplications(0).filter { info ->
-            val system = info.flags and ApplicationInfo.FLAG_SYSTEM != 0
-            val updatedSystem = info.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0
-            !system || updatedSystem || SensitiveApps.isBuiltinSensitive(info.packageName)
-        }.map { it.packageName }
-        (launcherPkgs + userInstalled)
+        pm.queryIntentActivities(launcher, 0)
             .asSequence()
+            .map { it.activityInfo.packageName }
             .filter { it != context.packageName }
             .distinct()
             .map { pkg ->
@@ -652,20 +648,29 @@ private fun SensitiveAppsScreen(onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (autoApps.isNotEmpty()) {
-                    item(key = "header_auto") {
-                        AppPickerSectionHeader(stringResource(R.string.bank_manage_section_auto))
+            if (apps.isEmpty()) {
+                // Aún cargando la lista de apps (PackageManager es lento). Componer
+                // el LazyColumn recién con los datos completos evita que Compose
+                // antepon­ga la sección automática por encima del scroll (anchoring).
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    if (autoApps.isNotEmpty()) {
+                        item(key = "header_auto") {
+                            AppPickerSectionHeader(stringResource(R.string.bank_manage_section_auto))
+                        }
+                        items(autoApps, key = { "auto_" + it.pkg }) { app ->
+                            AppPickerRow(app = app, checked = isOn(app), onToggle = { toggle(app) })
+                        }
                     }
-                    items(autoApps, key = { "auto_" + it.pkg }) { app ->
+                    item(key = "header_all") {
+                        AppPickerSectionHeader(stringResource(R.string.bank_manage_section_all))
+                    }
+                    items(filtered, key = { "all_" + it.pkg }) { app ->
                         AppPickerRow(app = app, checked = isOn(app), onToggle = { toggle(app) })
                     }
-                }
-                item(key = "header_all") {
-                    AppPickerSectionHeader(stringResource(R.string.bank_manage_section_all))
-                }
-                items(filtered, key = { "all_" + it.pkg }) { app ->
-                    AppPickerRow(app = app, checked = isOn(app), onToggle = { toggle(app) })
                 }
             }
         }
