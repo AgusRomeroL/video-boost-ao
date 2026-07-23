@@ -225,14 +225,25 @@ own **Wireless debugging** directly. It pairs once, over localhost, and from the
 on it can turn its accessibility service on and re-enable it after a sensitive
 app closes — the exact same `settings` commands, no root, no Shizuku.
 
+Pairing works like Shizuku's — **you never leave the pairing screen**. Video
+Boost watches for the pairing dialog over mDNS and, the moment it appears, sends
+a notification with an inline reply where you type the code.
+
 1. **Enable Wireless debugging.** Settings → System → Developer options →
    **Wireless debugging** (unlock Developer options first by tapping the build
    number 7 times).
-2. **Pair.** In Wireless debugging tap **"Pair device with pairing code"**. In
-   Video Boost open **No Shizuku? Use wireless ADB**, type the 6-digit code (the
-   IP and port are discovered automatically over mDNS) and tap **Pair**.
-3. Use **Turn on Video Boost now** to enable the service the first time (skips
-   the "Restricted setting" wall), and/or flip **Full-auto (wireless ADB)**.
+2. **Start pairing.** In Video Boost open **"No Shizuku? Use wireless ADB"** and
+   tap **Start pairing**.
+3. **Open the pairing dialog.** In Wireless debugging, tap **"Pair device with a
+   pairing code"**. A Video Boost notification pops up asking for the code — type
+   the 6-digit code into it **right there, without leaving the screen** (the IP
+   and port are found automatically over mDNS). It pairs and turns full-auto on.
+4. Use **Turn on Video Boost now** to enable the accessibility service the first
+   time (skips the sideload "Restricted setting" wall).
+
+> A manual entry (type the code, IP and port yourself) is also available under
+> **"Enter the code here instead (advanced)"**, but on most phones leaving the
+> pairing screen ends the session — the notification flow above avoids that.
 
 After a reboot you have to re-enable the "Wireless debugging" toggle once (an
 Android limitation — Shizuku has the same one); then tap **Reconnect**. No new
