@@ -16,6 +16,7 @@ object Prefs {
     private const val KEY_DISABLED_BY_BANK = "disabled_by_bank"
     private const val KEY_SENSITIVE_USER_APPS = "sensitive_user_apps"
     private const val KEY_SENSITIVE_EXCLUDED_APPS = "sensitive_excluded_apps"
+    private const val KEY_FULL_AUTO_SHIZUKU = "full_auto_shizuku"
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -60,5 +61,17 @@ object Prefs {
 
     fun setSensitiveExcludedApps(context: Context, apps: Set<String>) {
         prefs(context).edit().putStringSet(KEY_SENSITIVE_EXCLUDED_APPS, apps).apply()
+    }
+
+    /**
+     * Modo full-auto: con Shizuku, re-activar el servicio solo al cerrarse la
+     * app sensible (default: no; requiere que el usuario lo active y conceda
+     * el permiso de Shizuku).
+     */
+    fun fullAutoShizuku(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_FULL_AUTO_SHIZUKU, false)
+
+    fun setFullAutoShizuku(context: Context, enabled: Boolean) {
+        prefs(context).edit().putBoolean(KEY_FULL_AUTO_SHIZUKU, enabled).apply()
     }
 }

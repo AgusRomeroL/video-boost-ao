@@ -156,14 +156,9 @@ read the screen). They can't tell that this app is harmless, so they show an
 
 To avoid it, the app **turns its own accessibility service off when it detects a
 sensitive app in the foreground** (`disableSelf()`), so you're never blocked.
-When it does, it posts a **reminder notification**: tap it (once you're done)
-to turn Video Boost back on in one step.
 
-Why it can't re-enable itself automatically: Android forbids any app from
-enabling its own accessibility service (only you, in Settings, or ADB/root can),
-and a disabled service can't detect when you leave the app. True hands-free
-both-ways toggling is only possible with root or Shizuku. This app does the
-no-dependency half: automatic off + a reminder to turn it back on.
+**By default** (no extra setup) it posts a **reminder notification** the moment
+the app opens: tap it (once you're done) to turn Video Boost back on in one step.
 
 The built-in list
 ([`SensitiveApps.kt`](app/src/main/java/com/agustin/videoboostao/SensitiveApps.kt))
@@ -174,6 +169,48 @@ Every package is verified against its Google Play listing. In the app you can:
 - Toggle the auto-off behavior on/off.
 - **Add your own apps** ("Choose sensitive apps") if something isn't covered.
 - Turn the service off on demand.
+- Enable **Full-auto** or **smart reminders** (below).
+
+### Smarter reminders and full-auto
+
+A disabled accessibility service is blind — on its own it can't tell when you
+*leave* the sensitive app. Give the app a way to watch the foreground and it gets
+much nicer:
+
+| Setup | While the app is open | When you close it |
+|---|---|---|
+| **Default** (nothing) | reminder fires immediately | — (you re-enable manually) |
+| **Usage access** granted | **silent** "paused" notice | **alerting** reminder to re-enable |
+| **Shizuku** (full-auto) | **silent** "paused" notice | **re-enables itself** + a "back on" notice |
+
+So the notification is only *silent* while you're actually in the bank app, and
+only *alerts* you once you're out — and with Shizuku you don't even have to tap.
+
+- **Usage access** is a standard Android permission (Settings → Special access →
+  Usage access). It only lets the app see which app is in the foreground; nothing
+  leaves the device.
+- **Shizuku** lets the app re-enable its own accessibility service without root,
+  by running the same `settings` command ADB would. Setup below.
+
+### Full-auto with Shizuku (optional)
+
+[Shizuku](https://shizuku.rikka.app/) runs a small helper with shell (ADB-level)
+privileges that ordinary apps can talk to — no root required. Video Boost uses it
+only to flip its own accessibility service back on after a sensitive app closes.
+
+1. **Install Shizuku** from the Play Store or <https://shizuku.rikka.app/>.
+2. **Start Shizuku.** Open it and start the service via **wireless debugging**
+   (Android 11+), a **computer with ADB**, or **root**. Follow Shizuku's built-in
+   instructions. Note it must be started again after each reboot (its own docs
+   cover automating this).
+3. In Video Boost open **Sensitive apps → Full-auto & reminders**, turn on
+   **Full-auto (Shizuku)**, and **allow** the permission Shizuku prompts for.
+
+<p align="center"><img src="docs/shizuku-fullauto.png" width="300" alt="Full-auto & reminders section with Shizuku connected"></p>
+
+That's it. From then on, opening a sensitive app pauses Video Boost silently and
+closing it turns Video Boost back on automatically. If Shizuku ever isn't running,
+the app quietly falls back to the reminder notification.
 
 ## If it stops working (maintenance)
 

@@ -49,12 +49,47 @@
     <string name="bank_manage_section_auto">Marcadas automáticamente</string>
     <string name="bank_manage_section_all">Todas las apps</string>
 
+    <!-- Full-auto (Shizuku) + recordatorios -->
+    <string name="fullauto_title">Full-auto y recordatorios</string>
+    <string name="fullauto_status_shizuku">Full-auto activo: se reactiva solo tras una app sensible.</string>
+    <string name="fullauto_status_usage">Recordatorios activos: te avisa cuando cerrás la app.</string>
+    <string name="fullauto_status_off">Te avisa al abrir la app. Tocá para configurar más.</string>
+    <string name="fullauto_body">Por defecto el aviso aparece al abrir una app sensible. Con monitoreo, la notificación es silenciosa mientras la app está abierta y recién te avisa cuando la cerrás. Con Shizuku, Video Boost además se reactiva solo — sin tocar nada.</string>
+    <string name="fullauto_switch">Full-auto (Shizuku)</string>
+    <string name="fullauto_shizuku_ready">Shizuku conectado y listo.</string>
+    <string name="fullauto_shizuku_needs_perm">Shizuku está corriendo — concedé el permiso a Video Boost.</string>
+    <string name="fullauto_shizuku_absent">No se detectó Shizuku. Mirá los pasos de abajo.</string>
+    <string name="fullauto_grant_shizuku">Conceder permiso de Shizuku</string>
+    <string name="fullauto_usage_hint">¿Sin Shizuku? Concedé “Acceso de uso” y aun así recibís el aviso cuando la app sensible se cierra (reactivás a mano).</string>
+    <string name="fullauto_grant_usage">Conceder Acceso de uso</string>
+    <string name="fullauto_tutorial_title">Configurar Shizuku</string>
+    <string name="fullauto_step1_title">Instalá Shizuku</string>
+    <string name="fullauto_step1_body">Conseguí la app gratuita Shizuku en Play Store o su sitio web.</string>
+    <string name="fullauto_step1_action">Abrir shizuku.rikka.app</string>
+    <string name="fullauto_step2_title">Iniciá Shizuku</string>
+    <string name="fullauto_step2_body">Abrí Shizuku e iniciálo por depuración inalámbrica (Android 11+), una PC con ADB, o root. La propia guía de Shizuku te lleva paso a paso. Puede que tengas que reiniciarlo tras reiniciar el teléfono.</string>
+    <string name="fullauto_step3_title">Activá el full-auto</string>
+    <string name="fullauto_step3_body">Volvé acá, activá “Full-auto (Shizuku)” arriba y aceptá el permiso que pide Shizuku. Listo — Video Boost maneja las apps sensibles solo.</string>
+
     <!-- Notificación -->
     <string name="notif_channel_name">Recordatorios de reactivación</string>
     <string name="notif_channel_desc">Te recuerda encender Video Boost después de una app sensible.</string>
     <string name="notif_title">Video Boost está apagado</string>
     <string name="notif_text">Se apagó porque se abrió una app sensible. Tocá para reactivarlo cuando termines.</string>
     <string name="notif_text_named">Se apagó por %1$s. Tocá para reactivarlo cuando termines.</string>
+    <!-- Notificación silenciosa "en pausa" mientras una app sensible está abierta -->
+    <string name="notif_channel_paused_name">En pausa por apps sensibles</string>
+    <string name="notif_channel_paused_desc">Aviso silencioso mientras una app sensible está abierta.</string>
+    <string name="notif_paused_title">Video Boost en pausa</string>
+    <string name="notif_paused_text">En pausa mientras una app sensible está abierta. Vuelve cuando la cierres.</string>
+    <string name="notif_paused_text_named">En pausa mientras %1$s está abierta. Vuelve cuando la cierres.</string>
+    <!-- Aviso normal cuando la app sensible se cierra -->
+    <string name="notif_closed_title">Reactivá Video Boost</string>
+    <string name="notif_closed_text">La app sensible se cerró. Tocá para reactivar Video Boost.</string>
+    <string name="notif_closed_text_named">%1$s se cerró. Tocá para reactivar Video Boost.</string>
+    <!-- Aviso normal cuando el full-auto lo reactivó solo -->
+    <string name="notif_reenabled_title">Video Boost volvió</string>
+    <string name="notif_reenabled_text">Se reactivó solo ahora que la app sensible está cerrada.</string>
 
     <!-- Acciones -->
     <string name="btn_try_now">Probar ahora</string>

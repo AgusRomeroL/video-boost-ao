@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Solo para el chequeo de actualizaciones contra GitHub Releases -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Recordatorio para reactivar tras una app sensible (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Monitor de primer plano mientras el servicio está apagado por una app
+         sensible: detecta que la app se cerró para avisar / reactivar. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Fallback sin Shizuku para detectar el cierre de la app sensible.
+         Special access: el usuario lo concede en "Acceso de uso". -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
     <!--
       Visibilidad de paquetes (Android 11+): sin esto, PackageManager solo ve
@@ -47,6 +57,25 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <!-- Monitor de primer plano durante una sesión de app sensible. -->
+        <service
+            android:name=".BankWatchService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Detects when a foreground banking/sensitive app closes so Video Boost's accessibility service can be re-enabled." />
+        </service>
+
+        <!-- Shizuku: proveedor requerido por el SDK para el modo full-auto. -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
     </application>
 </manifest>
