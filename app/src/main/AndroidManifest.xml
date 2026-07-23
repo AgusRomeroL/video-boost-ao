@@ -68,6 +68,16 @@
                 android:value="Detects when a foreground banking/sensitive app closes so Video Boost's accessibility service can be re-enabled." />
         </service>
 
+        <!-- Emparejamiento ADB por notificación (mDNS del diálogo de pairing). -->
+        <service
+            android:name=".AdbPairingService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Discovers the on-device wireless-debugging pairing service and prompts the user for the pairing code via a reply notification." />
+        </service>
+
         <!-- Shizuku: proveedor requerido por el SDK para el modo full-auto. -->
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
