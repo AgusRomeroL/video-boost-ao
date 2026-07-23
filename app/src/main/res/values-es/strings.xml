@@ -82,7 +82,11 @@
     <string name="adb_step1_body">En Opciones de desarrollador, activá “Depuración inalámbrica”. (Primero habilitá Opciones de desarrollador tocando 7 veces el número de compilación.)</string>
     <string name="adb_open_devoptions">Abrir Opciones de desarrollador</string>
     <string name="adb_step2_title">Emparejá con un código</string>
-    <string name="adb_step2_body">En Depuración inalámbrica, tocá “Vincular dispositivo con un código”, escribí acá el código de 6 dígitos y emparejá. La IP y el puerto se detectan solos.</string>
+    <string name="adb_step2_body">Tocá abajo y luego abrí “Vincular dispositivo con un código”. Aparecerá una notificación donde escribís el código de 6 dígitos — así no salís nunca de la pantalla de vinculación.</string>
+    <string name="adb_btn_start_pairing">Empezar emparejamiento</string>
+    <string name="adb_waiting_hint">Ahora abrí Depuración inalámbrica → “Vincular dispositivo con un código”. Una notificación te pedirá el código — escribílo ahí sin salir de esa pantalla.</string>
+    <string name="adb_manual_show">Escribir el código acá (avanzado)</string>
+    <string name="adb_manual_hide">Ocultar entrada manual</string>
     <string name="adb_code_label">Código de vinculación</string>
     <string name="adb_host_label">IP (auto)</string>
     <string name="adb_port_label">Puerto</string>
@@ -98,6 +102,20 @@
     <string name="adb_error_pair_failed">Falló el emparejamiento. Revisá el código y que la pantalla de vinculación siga abierta.</string>
     <string name="adb_error_connect_failed">No se pudo conectar. Verificá que “Depuración inalámbrica” esté activa.</string>
     <string name="adb_attribution">Usa la librería de código abierto libadb-android (incluye spake2-android, LGPL-3.0). Ningún dato sale de tu dispositivo.</string>
+    <!-- Notificación de emparejamiento ADB (respuesta inline con el código) -->
+    <string name="notif_channel_adb_name">Emparejamiento ADB inalámbrico</string>
+    <string name="notif_channel_adb_desc">Pide el código de vinculación cuando abrís la pantalla de vinculación.</string>
+    <string name="adb_notif_searching_title">Esperando la pantalla de vinculación</string>
+    <string name="adb_notif_searching_text">Abrí Opciones de desarrollador → Depuración inalámbrica → “Vincular dispositivo con un código”. Tené a mano esta notificación.</string>
+    <string name="adb_notif_title">Escribí el código de vinculación</string>
+    <string name="adb_notif_title_retry">Falló — probá el código de nuevo</string>
+    <string name="adb_notif_text">Escribí el código de 6 dígitos que muestra la pantalla de vinculación. Podés hacerlo acá mismo, sin salir de esa pantalla.</string>
+    <string name="adb_notif_code_hint">Código de 6 dígitos</string>
+    <string name="adb_notif_action">Escribir código</string>
+    <string name="adb_notif_cancel">Cancelar</string>
+    <string name="adb_notif_pairing">Emparejando…</string>
+    <string name="adb_notif_done_title">ADB inalámbrico emparejado</string>
+    <string name="adb_notif_done_text">Video Boost ya puede activarse solo. Full-auto activado.</string>
 
     <!-- Notificación -->
     <string name="notif_channel_name">Recordatorios de reactivación</string>

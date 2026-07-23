@@ -799,6 +799,17 @@ private fun AdbPairingCard(
     var port by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var info by remember { mutableStateOf<String?>(null) }
+    var waitingNotif by remember { mutableStateOf(false) }
+    var manualExpanded by remember { mutableStateOf(false) }
+
+    // Al volver de Ajustes (p.ej. tras emparejar por la notificación) refrescar
+    // el estado de emparejado/full-auto.
+    LifecycleResumeEffect(Unit) {
+        paired = AdbManager.isPaired(context)
+        fullAutoAdb = Prefs.fullAutoAdb(context)
+        onAdbReadyChanged()
+        onPauseOrDispose { }
+    }
 
     val busy = phase != AdbPhase.Idle
 
@@ -875,88 +886,124 @@ private fun AdbPairingCard(
                     ) { Text(stringResource(R.string.adb_open_devoptions)) }
                 }
 
-                // Paso 2: emparejar con el código de 6 dígitos.
+                // Paso 2: emparejar por NOTIFICACIÓN (estilo Shizuku). El
+                // usuario no sale de la pantalla de Depuración inalámbrica: la
+                // app escucha por mDNS y le manda una notificación con campo de
+                // respuesta para teclear el código ahí mismo.
                 StepBlock(
                     number = 2,
                     title = stringResource(R.string.adb_step2_title),
                     body = stringResource(R.string.adb_step2_body),
                 ) {
-                    OutlinedTextField(
-                        value = code,
-                        onValueChange = { code = it.filter { c -> c.isDigit() }.take(6) },
-                        label = { Text(stringResource(R.string.adb_code_label)) },
-                        singleLine = true,
-                        enabled = !busy,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    // Host/puerto: se autodescubren por mDNS; editables como
-                    // respaldo si el descubrimiento falla.
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = host,
-                            onValueChange = { host = it },
-                            label = { Text(stringResource(R.string.adb_host_label)) },
-                            singleLine = true,
-                            enabled = !busy,
-                            modifier = Modifier.weight(2f),
-                        )
-                        OutlinedTextField(
-                            value = port,
-                            onValueChange = { port = it.filter { c -> c.isDigit() } },
-                            label = { Text(stringResource(R.string.adb_port_label)) },
-                            singleLine = true,
-                            enabled = !busy,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
                     Button(
                         onClick = {
                             error = null
-                            info = null
-                            scope.launch {
-                                // Autodescubrir el endpoint de pairing si el
-                                // usuario no tecleó host:puerto a mano.
-                                if (host.isBlank() || port.isBlank()) {
-                                    phase = AdbPhase.Discovering
-                                    info = context.getString(R.string.adb_discovering)
-                                    val ep = AdbManager.discoverPairingEndpoint(context)
-                                    if (ep != null) {
-                                        host = ep.host
-                                        port = ep.port.toString()
-                                    }
-                                }
-                                val p = port.toIntOrNull()
-                                if (host.isBlank() || p == null) {
-                                    error = context.getString(R.string.adb_error_no_device)
-                                    info = null
-                                    phase = AdbPhase.Idle
-                                    return@launch
-                                }
-                                phase = AdbPhase.Pairing
-                                info = context.getString(R.string.adb_pairing)
-                                val pr = AdbManager.pair(context, host, p, code)
-                                if (pr.isFailure) {
-                                    error = context.getString(R.string.adb_error_pair_failed)
-                                    info = null
-                                    phase = AdbPhase.Idle
-                                    return@launch
-                                }
-                                paired = true
-                                phase = AdbPhase.Connecting
-                                info = context.getString(R.string.adb_connecting)
-                                val cr = AdbManager.connect(context)
-                                connected = cr.isSuccess
-                                info = null
-                                phase = AdbPhase.Idle
-                                if (!connected) {
-                                    error = context.getString(R.string.adb_error_connect_failed)
-                                }
-                                onAdbReadyChanged()
+                            waitingNotif = true
+                            AdbPairingService.start(context)
+                            try {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            } catch (_: Exception) {
                             }
                         },
-                        enabled = !busy && code.length == 6,
+                        enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.adb_btn_pair)) }
+                    ) { Text(stringResource(R.string.adb_btn_start_pairing)) }
+                    if (waitingNotif) {
+                        Text(
+                            text = stringResource(R.string.adb_waiting_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    // Fallback manual (avanzado): teclear código + host:puerto
+                    // acá. Solo sirve en ROMs que mantienen vivo el pairing al
+                    // salir de la pantalla; por eso es secundario.
+                    TextButton(onClick = { manualExpanded = !manualExpanded }) {
+                        Text(
+                            stringResource(
+                                if (manualExpanded) R.string.adb_manual_hide
+                                else R.string.adb_manual_show
+                            )
+                        )
+                    }
+                    if (manualExpanded) {
+                        OutlinedTextField(
+                            value = code,
+                            onValueChange = { code = it.filter { c -> c.isDigit() }.take(6) },
+                            label = { Text(stringResource(R.string.adb_code_label)) },
+                            singleLine = true,
+                            enabled = !busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = host,
+                                onValueChange = { host = it },
+                                label = { Text(stringResource(R.string.adb_host_label)) },
+                                singleLine = true,
+                                enabled = !busy,
+                                modifier = Modifier.weight(2f),
+                            )
+                            OutlinedTextField(
+                                value = port,
+                                onValueChange = { port = it.filter { c -> c.isDigit() } },
+                                label = { Text(stringResource(R.string.adb_port_label)) },
+                                singleLine = true,
+                                enabled = !busy,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                error = null
+                                info = null
+                                scope.launch {
+                                    if (host.isBlank() || port.isBlank()) {
+                                        phase = AdbPhase.Discovering
+                                        info = context.getString(R.string.adb_discovering)
+                                        val ep = AdbManager.discoverPairingEndpoint(context)
+                                        if (ep != null) {
+                                            host = ep.host
+                                            port = ep.port.toString()
+                                        }
+                                    }
+                                    val p = port.toIntOrNull()
+                                    if (host.isBlank() || p == null) {
+                                        error = context.getString(R.string.adb_error_no_device)
+                                        info = null
+                                        phase = AdbPhase.Idle
+                                        return@launch
+                                    }
+                                    phase = AdbPhase.Pairing
+                                    info = context.getString(R.string.adb_pairing)
+                                    val pr = AdbManager.pair(context, host, p, code)
+                                    if (pr.isFailure) {
+                                        error = context.getString(R.string.adb_error_pair_failed)
+                                        info = null
+                                        phase = AdbPhase.Idle
+                                        return@launch
+                                    }
+                                    paired = true
+                                    phase = AdbPhase.Connecting
+                                    info = context.getString(R.string.adb_connecting)
+                                    val cr = AdbManager.connect(context)
+                                    connected = cr.isSuccess
+                                    info = null
+                                    phase = AdbPhase.Idle
+                                    if (!connected) {
+                                        error = context.getString(R.string.adb_error_connect_failed)
+                                    }
+                                    onAdbReadyChanged()
+                                }
+                            },
+                            enabled = !busy && code.length == 6,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.adb_btn_pair)) }
+                    }
                 }
 
                 // Ya emparejado: reconexión + activación + toggle full-auto.

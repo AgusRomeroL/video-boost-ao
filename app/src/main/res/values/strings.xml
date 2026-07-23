@@ -82,7 +82,11 @@
     <string name="adb_step1_body">In Developer options, turn on “Wireless debugging”. (Enable Developer options first by tapping the build number 7 times.)</string>
     <string name="adb_open_devoptions">Open Developer options</string>
     <string name="adb_step2_title">Pair with a code</string>
-    <string name="adb_step2_body">In Wireless debugging, tap “Pair device with a pairing code”, type the 6-digit code here and pair. Host and port are found automatically.</string>
+    <string name="adb_step2_body">Tap below, then open “Pair device with a pairing code”. A notification will pop up where you type the 6-digit code — so you never have to leave the pairing screen.</string>
+    <string name="adb_btn_start_pairing">Start pairing</string>
+    <string name="adb_waiting_hint">Now open Wireless debugging → “Pair device with a pairing code”. A notification will ask for the code — type it there without leaving that screen.</string>
+    <string name="adb_manual_show">Enter the code here instead (advanced)</string>
+    <string name="adb_manual_hide">Hide manual entry</string>
     <string name="adb_code_label">Pairing code</string>
     <string name="adb_host_label">IP (auto)</string>
     <string name="adb_port_label">Port</string>
@@ -98,6 +102,20 @@
     <string name="adb_error_pair_failed">Pairing failed. Check the code and that the pairing screen is still open.</string>
     <string name="adb_error_connect_failed">Couldn\'t connect. Make sure “Wireless debugging” is on.</string>
     <string name="adb_attribution">Uses the open-source libadb-android (includes spake2-android, LGPL-3.0). No data leaves your device.</string>
+    <!-- ADB pairing notification (inline reply for the code) -->
+    <string name="notif_channel_adb_name">Wireless ADB pairing</string>
+    <string name="notif_channel_adb_desc">Asks for the pairing code when you open the pairing screen.</string>
+    <string name="adb_notif_searching_title">Waiting for the pairing screen</string>
+    <string name="adb_notif_searching_text">Open Developer options → Wireless debugging → “Pair device with a pairing code”. Keep this notification handy.</string>
+    <string name="adb_notif_title">Enter the pairing code</string>
+    <string name="adb_notif_title_retry">Pairing failed — try the code again</string>
+    <string name="adb_notif_text">Type the 6-digit code shown on the pairing screen. You can do it right here, without leaving that screen.</string>
+    <string name="adb_notif_code_hint">6-digit code</string>
+    <string name="adb_notif_action">Enter code</string>
+    <string name="adb_notif_cancel">Cancel</string>
+    <string name="adb_notif_pairing">Pairing…</string>
+    <string name="adb_notif_done_title">Wireless ADB paired</string>
+    <string name="adb_notif_done_text">Video Boost can now enable itself. Full-auto is on.</string>
 
     <!-- Notification -->
     <string name="notif_channel_name">Re-enable reminders</string>

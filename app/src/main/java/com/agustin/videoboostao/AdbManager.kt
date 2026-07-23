@@ -72,6 +72,30 @@ object AdbManager {
     suspend fun discoverPairingEndpoint(context: Context, timeoutMs: Long = 15_000): Endpoint? =
         discover(context, AdbMdns.SERVICE_TYPE_TLS_PAIRING, timeoutMs)
 
+    /** Handle para parar un descubrimiento continuo de pairing. */
+    class PairingDiscovery internal constructor(private val mdns: AdbMdns) {
+        fun stop() {
+            runCatching { mdns.stop() }
+        }
+    }
+
+    /**
+     * Descubrimiento CONTINUO del endpoint de pairing, para el flujo por
+     * notificación (estilo Shizuku): la app escucha en segundo plano y, cuando
+     * el usuario abre "Vincular con código", el servicio mDNS aparece y se
+     * dispara [onFound] con host+puerto. Corre hasta que se llame a
+     * [PairingDiscovery.stop]. [onFound] llega en un hilo de NsdManager.
+     */
+    fun startPairingDiscovery(context: Context, onFound: (Endpoint) -> Unit): PairingDiscovery {
+        ensureHiddenApiBypass()
+        val mdns = AdbMdns(context, AdbMdns.SERVICE_TYPE_TLS_PAIRING) { host, port ->
+            val h = host?.hostAddress
+            if (port > 0 && h != null) onFound(Endpoint(h, port))
+        }
+        mdns.start()
+        return PairingDiscovery(mdns)
+    }
+
     /**
      * Empareja con el daemon usando el código de 6 dígitos. Al éxito persiste la
      * clave y marca `adb_paired`. [host]/[port] vienen del descubrimiento mDNS o
