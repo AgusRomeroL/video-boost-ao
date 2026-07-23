@@ -59,6 +59,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +71,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
@@ -141,6 +143,7 @@ private fun MainScreen(onManageApps: () -> Unit) {
     var shizukuAvailable by remember { mutableStateOf(ShizukuManager.isAvailable()) }
     var shizukuReady by remember { mutableStateOf(ShizukuManager.hasPermission()) }
     var usageAccess by remember { mutableStateOf(Capabilities.hasUsageAccess(context)) }
+    var adbReady by remember { mutableStateOf(Capabilities.adbReady(context)) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
     LifecycleResumeEffect(Unit) {
@@ -152,6 +155,7 @@ private fun MainScreen(onManageApps: () -> Unit) {
         shizukuAvailable = ShizukuManager.isAvailable()
         shizukuReady = ShizukuManager.hasPermission()
         usageAccess = Capabilities.hasUsageAccess(context)
+        adbReady = Capabilities.adbReady(context)
         onPauseOrDispose { }
     }
 
@@ -211,6 +215,7 @@ private fun MainScreen(onManageApps: () -> Unit) {
                     shizukuAvailable = shizukuAvailable,
                     shizukuReady = shizukuReady,
                     usageAccess = usageAccess,
+                    adbReady = adbReady,
                     onToggleFullAuto = { want ->
                         fullAuto = want
                         Prefs.setFullAutoShizuku(context, want)
@@ -249,6 +254,16 @@ private fun MainScreen(onManageApps: () -> Unit) {
             // Guía de configuración: siempre visible. Expandida cuando falta
             // configurar; colapsada (consultable) cuando el servicio ya está activo.
             SetupCard(context, serviceEnabled, disabledByBank)
+
+            // Alternativa a Shizuku: emparejar por ADB inalámbrico. Siempre
+            // visible porque sirve para dos cosas: activar el servicio la primera
+            // vez (si aún no lo está) y el full-auto (re-activación al cerrar apps
+            // sensibles). No borra ni sustituye la opción de Shizuku.
+            AdbPairingCard(
+                serviceEnabled = serviceEnabled,
+                onServiceEnabled = { serviceEnabled = isAccessibilityServiceEnabled(context) },
+                onAdbReadyChanged = { adbReady = Capabilities.adbReady(context) },
+            )
 
             CostCard()
 
@@ -572,6 +587,7 @@ private fun BankCard(
     shizukuAvailable: Boolean,
     shizukuReady: Boolean,
     usageAccess: Boolean,
+    adbReady: Boolean,
     onToggleFullAuto: (Boolean) -> Unit,
     onGrantShizuku: () -> Unit,
     onGrantUsageAccess: () -> Unit,
@@ -618,6 +634,7 @@ private fun BankCard(
                 shizukuAvailable = shizukuAvailable,
                 shizukuReady = shizukuReady,
                 usageAccess = usageAccess,
+                adbReady = adbReady,
                 onToggleFullAuto = onToggleFullAuto,
                 onGrantShizuku = onGrantShizuku,
                 onGrantUsageAccess = onGrantUsageAccess,
@@ -638,6 +655,7 @@ private fun FullAutoSection(
     shizukuAvailable: Boolean,
     shizukuReady: Boolean,
     usageAccess: Boolean,
+    adbReady: Boolean,
     onToggleFullAuto: (Boolean) -> Unit,
     onGrantShizuku: () -> Unit,
     onGrantUsageAccess: () -> Unit,
@@ -660,6 +678,7 @@ private fun FullAutoSection(
                     text = stringResource(
                         when {
                             fullAuto && shizukuReady -> R.string.fullauto_status_shizuku
+                            adbReady -> R.string.fullauto_status_adb
                             usageAccess -> R.string.fullauto_status_usage
                             else -> R.string.fullauto_status_off
                         }
@@ -748,6 +767,295 @@ private fun FullAutoSection(
                 title = stringResource(R.string.fullauto_step3_title),
                 body = stringResource(R.string.fullauto_step3_body),
             ) {}
+        }
+    }
+}
+
+/** Fases del emparejamiento ADB inalámbrico. */
+private enum class AdbPhase { Idle, Discovering, AwaitingCode, Pairing, Connecting, Enabling }
+
+/**
+ * Tarjeta de la alternativa in-app a Shizuku: empareja la app con el "Wireless
+ * debugging" del propio dispositivo (ADB inalámbrico) y, con eso, puede activar
+ * el servicio de accesibilidad la primera vez y re-activarlo solo (full-auto)
+ * al cerrarse una app sensible. No sustituye a Shizuku; es una vía paralela.
+ */
+@Composable
+private fun AdbPairingCard(
+    serviceEnabled: Boolean,
+    onServiceEnabled: () -> Unit,
+    onAdbReadyChanged: () -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var expanded by remember { mutableStateOf(false) }
+    var paired by remember { mutableStateOf(AdbManager.isPaired(context)) }
+    var fullAutoAdb by remember { mutableStateOf(Prefs.fullAutoAdb(context)) }
+    var connected by remember { mutableStateOf(false) }
+    var phase by remember { mutableStateOf(AdbPhase.Idle) }
+    var code by remember { mutableStateOf("") }
+    var host by remember { mutableStateOf("") }
+    var port by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    var info by remember { mutableStateOf<String?>(null) }
+
+    val busy = phase != AdbPhase.Idle
+
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.adb_section_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = stringResource(
+                            when {
+                                fullAutoAdb && paired -> R.string.adb_status_ready
+                                paired -> R.string.adb_status_paired_disconnected
+                                else -> R.string.adb_status_off
+                            }
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = if (expanded) "▲" else "▼",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            if (expanded) {
+                Text(
+                    text = stringResource(R.string.adb_section_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                // Paso 1: activar Wireless debugging (Opciones de desarrollador).
+                StepBlock(
+                    number = 1,
+                    title = stringResource(R.string.adb_step1_title),
+                    body = stringResource(R.string.adb_step1_body),
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            try {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            } catch (_: Exception) {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_SETTINGS)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.adb_open_devoptions)) }
+                }
+
+                // Paso 2: emparejar con el código de 6 dígitos.
+                StepBlock(
+                    number = 2,
+                    title = stringResource(R.string.adb_step2_title),
+                    body = stringResource(R.string.adb_step2_body),
+                ) {
+                    OutlinedTextField(
+                        value = code,
+                        onValueChange = { code = it.filter { c -> c.isDigit() }.take(6) },
+                        label = { Text(stringResource(R.string.adb_code_label)) },
+                        singleLine = true,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    // Host/puerto: se autodescubren por mDNS; editables como
+                    // respaldo si el descubrimiento falla.
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = host,
+                            onValueChange = { host = it },
+                            label = { Text(stringResource(R.string.adb_host_label)) },
+                            singleLine = true,
+                            enabled = !busy,
+                            modifier = Modifier.weight(2f),
+                        )
+                        OutlinedTextField(
+                            value = port,
+                            onValueChange = { port = it.filter { c -> c.isDigit() } },
+                            label = { Text(stringResource(R.string.adb_port_label)) },
+                            singleLine = true,
+                            enabled = !busy,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            error = null
+                            info = null
+                            scope.launch {
+                                // Autodescubrir el endpoint de pairing si el
+                                // usuario no tecleó host:puerto a mano.
+                                if (host.isBlank() || port.isBlank()) {
+                                    phase = AdbPhase.Discovering
+                                    info = context.getString(R.string.adb_discovering)
+                                    val ep = AdbManager.discoverPairingEndpoint(context)
+                                    if (ep != null) {
+                                        host = ep.host
+                                        port = ep.port.toString()
+                                    }
+                                }
+                                val p = port.toIntOrNull()
+                                if (host.isBlank() || p == null) {
+                                    error = context.getString(R.string.adb_error_no_device)
+                                    info = null
+                                    phase = AdbPhase.Idle
+                                    return@launch
+                                }
+                                phase = AdbPhase.Pairing
+                                info = context.getString(R.string.adb_pairing)
+                                val pr = AdbManager.pair(context, host, p, code)
+                                if (pr.isFailure) {
+                                    error = context.getString(R.string.adb_error_pair_failed)
+                                    info = null
+                                    phase = AdbPhase.Idle
+                                    return@launch
+                                }
+                                paired = true
+                                phase = AdbPhase.Connecting
+                                info = context.getString(R.string.adb_connecting)
+                                val cr = AdbManager.connect(context)
+                                connected = cr.isSuccess
+                                info = null
+                                phase = AdbPhase.Idle
+                                if (!connected) {
+                                    error = context.getString(R.string.adb_error_connect_failed)
+                                }
+                                onAdbReadyChanged()
+                            }
+                        },
+                        enabled = !busy && code.length == 6,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.adb_btn_pair)) }
+                }
+
+                // Ya emparejado: reconexión + activación + toggle full-auto.
+                if (paired) {
+                    HorizontalDivider()
+
+                    if (!serviceEnabled) {
+                        // Activación inicial: encender el servicio sin pasar por
+                        // el muro de "Ajustes restringidos".
+                        Button(
+                            onClick = {
+                                error = null
+                                scope.launch {
+                                    phase = AdbPhase.Enabling
+                                    info = context.getString(R.string.adb_connecting)
+                                    val r = InitialEnable.enableAccessibilityViaAdb(context)
+                                    info = null
+                                    phase = AdbPhase.Idle
+                                    if (r.isSuccess) onServiceEnabled()
+                                    else error = context.getString(R.string.adb_error_connect_failed)
+                                }
+                            },
+                            enabled = !busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.adb_btn_enable_now)) }
+                    }
+
+                    // Reconectar (tras un reinicio hay que re-activar Wireless
+                    // debugging; el puerto cambia pero la clave sigue válida).
+                    OutlinedButton(
+                        onClick = {
+                            error = null
+                            scope.launch {
+                                phase = AdbPhase.Connecting
+                                info = context.getString(R.string.adb_connecting)
+                                val cr = AdbManager.connect(context)
+                                connected = cr.isSuccess
+                                info = null
+                                phase = AdbPhase.Idle
+                                if (!connected) {
+                                    error = context.getString(R.string.adb_error_connect_failed)
+                                }
+                            }
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.adb_btn_reconnect)) }
+
+                    // Full-auto vía ADB (re-activación al cerrar app sensible).
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.adb_fullauto_switch),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Switch(
+                            checked = fullAutoAdb,
+                            onCheckedChange = { want ->
+                                fullAutoAdb = want
+                                Prefs.setFullAutoAdb(context, want)
+                                onAdbReadyChanged()
+                            },
+                        )
+                    }
+
+                    Text(
+                        text = stringResource(R.string.adb_reboot_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                // Progreso / errores.
+                if (busy) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = info ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                error?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+
+                Text(
+                    text = stringResource(R.string.adb_attribution),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

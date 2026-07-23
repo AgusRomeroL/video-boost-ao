@@ -11,6 +11,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // libadb-android y sus transitivas (spake2-android, sun-security-android)
+        // se publican via JitPack.
+        maven { url = uri("https://jitpack.io") }
     }
 }
 

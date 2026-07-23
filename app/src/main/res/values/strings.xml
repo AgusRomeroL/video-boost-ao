@@ -52,6 +52,7 @@
     <!-- Full-auto (Shizuku) + smart reminders -->
     <string name="fullauto_title">Full-auto &amp; reminders</string>
     <string name="fullauto_status_shizuku">Full-auto on: re-enables itself after a sensitive app.</string>
+    <string name="fullauto_status_adb">Full-auto on (wireless ADB): re-enables itself after a sensitive app.</string>
     <string name="fullauto_status_usage">Smart reminders on: alerts you when the app closes.</string>
     <string name="fullauto_status_off">Reminds you on the app opening. Tap to set up more.</string>
     <string name="fullauto_body">By default the reminder shows when a sensitive app opens. With monitoring, the notification is silent while the app is open and only alerts you when you close it. With Shizuku, Video Boost also turns itself back on automatically — no tapping.</string>
@@ -70,6 +71,33 @@
     <string name="fullauto_step2_body">Open Shizuku and start it via wireless debugging (Android 11+), a computer with ADB, or root. Shizuku\'s own guide walks you through it. You may need to restart it after a reboot.</string>
     <string name="fullauto_step3_title">Turn on full-auto</string>
     <string name="fullauto_step3_body">Come back here, flip “Full-auto (Shizuku)” above and allow the permission Shizuku asks for. Done — Video Boost now handles sensitive apps by itself.</string>
+
+    <!-- In-app alternative to Shizuku: wireless-ADB self-grant -->
+    <string name="adb_section_title">No Shizuku? Use wireless ADB</string>
+    <string name="adb_status_ready">Wireless ADB paired and full-auto on.</string>
+    <string name="adb_status_paired_disconnected">Paired. Re-enable wireless debugging after a reboot, then reconnect.</string>
+    <string name="adb_status_off">Pair once to enable and re-enable Video Boost without Shizuku.</string>
+    <string name="adb_section_body">Instead of installing Shizuku, Video Boost can talk to your phone\'s own “Wireless debugging” directly. Pair once and it can turn its accessibility service on and re-enable it after a sensitive app closes — no second app.</string>
+    <string name="adb_step1_title">Enable Wireless debugging</string>
+    <string name="adb_step1_body">In Developer options, turn on “Wireless debugging”. (Enable Developer options first by tapping the build number 7 times.)</string>
+    <string name="adb_open_devoptions">Open Developer options</string>
+    <string name="adb_step2_title">Pair with a code</string>
+    <string name="adb_step2_body">In Wireless debugging, tap “Pair device with a pairing code”, type the 6-digit code here and pair. Host and port are found automatically.</string>
+    <string name="adb_code_label">Pairing code</string>
+    <string name="adb_host_label">IP (auto)</string>
+    <string name="adb_port_label">Port</string>
+    <string name="adb_btn_pair">Pair</string>
+    <string name="adb_discovering">Looking for the device…</string>
+    <string name="adb_pairing">Pairing…</string>
+    <string name="adb_connecting">Connecting…</string>
+    <string name="adb_btn_reconnect">Reconnect</string>
+    <string name="adb_btn_enable_now">Turn on Video Boost now</string>
+    <string name="adb_fullauto_switch">Full-auto (wireless ADB)</string>
+    <string name="adb_reboot_hint">After a reboot you must re-enable “Wireless debugging” once; then tap Reconnect. No new code is needed.</string>
+    <string name="adb_error_no_device">Couldn\'t find the device. Open the pairing screen first, or type IP and port manually.</string>
+    <string name="adb_error_pair_failed">Pairing failed. Check the code and that the pairing screen is still open.</string>
+    <string name="adb_error_connect_failed">Couldn\'t connect. Make sure “Wireless debugging” is on.</string>
+    <string name="adb_attribution">Uses the open-source libadb-android (includes spake2-android, LGPL-3.0). No data leaves your device.</string>
 
     <!-- Notification -->
     <string name="notif_channel_name">Re-enable reminders</string>

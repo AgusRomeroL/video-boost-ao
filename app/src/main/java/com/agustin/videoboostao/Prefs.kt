@@ -17,6 +17,8 @@ object Prefs {
     private const val KEY_SENSITIVE_USER_APPS = "sensitive_user_apps"
     private const val KEY_SENSITIVE_EXCLUDED_APPS = "sensitive_excluded_apps"
     private const val KEY_FULL_AUTO_SHIZUKU = "full_auto_shizuku"
+    private const val KEY_FULL_AUTO_ADB = "full_auto_adb"
+    private const val KEY_ADB_PAIRED = "adb_paired"
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -73,5 +75,25 @@ object Prefs {
 
     fun setFullAutoShizuku(context: Context, enabled: Boolean) {
         prefs(context).edit().putBoolean(KEY_FULL_AUTO_SHIZUKU, enabled).apply()
+    }
+
+    /**
+     * Modo full-auto vía ADB inalámbrico embebido (alternativa a Shizuku, sin
+     * app externa). Como Shizuku: default no; requiere emparejar el dispositivo.
+     */
+    fun fullAutoAdb(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_FULL_AUTO_ADB, false)
+
+    fun setFullAutoAdb(context: Context, enabled: Boolean) {
+        prefs(context).edit().putBoolean(KEY_FULL_AUTO_ADB, enabled).apply()
+    }
+
+    /** El dispositivo ya se emparejó por ADB (la clave RSA es la fuente de
+     *  verdad; esto es solo un flag barato para la UI). */
+    fun adbPaired(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_ADB_PAIRED, false)
+
+    fun setAdbPaired(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_ADB_PAIRED, value).apply()
     }
 }
