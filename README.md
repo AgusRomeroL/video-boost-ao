@@ -115,8 +115,10 @@ no need to disable accessibility.
   Video Boost off; gives up quietly after a few attempts if the UI changed.
 - Material 3 UI (Compose) with dynamic color, guided onboarding, master
   switch, and an update checker.
-- No root, no Shizuku, no analytics. `INTERNET` permission is used solely for
-  the GitHub release check.
+- No root and no analytics. Full-auto is optional and off by default; when you
+  want it, you can use either Shizuku **or** a built-in wireless-ADB mode (no
+  second app). `INTERNET` permission is used for the GitHub release check and,
+  if you enable it, the local ADB connection to your own device.
 
 ## Requirements
 
@@ -182,15 +184,19 @@ much nicer:
 | **Default** (nothing) | reminder fires immediately | — (you re-enable manually) |
 | **Usage access** granted | **silent** "paused" notice | **alerting** reminder to re-enable |
 | **Shizuku** (full-auto) | **silent** "paused" notice | **re-enables itself** + a "back on" notice |
+| **Wireless ADB** (full-auto, no extra app) | **silent** "paused" notice | **re-enables itself** + a "back on" notice |
 
 So the notification is only *silent* while you're actually in the bank app, and
-only *alerts* you once you're out — and with Shizuku you don't even have to tap.
+only *alerts* you once you're out — and with full-auto you don't even have to tap.
 
 - **Usage access** is a standard Android permission (Settings → Special access →
   Usage access). It only lets the app see which app is in the foreground; nothing
   leaves the device.
 - **Shizuku** lets the app re-enable its own accessibility service without root,
   by running the same `settings` command ADB would. Setup below.
+- **Wireless ADB** does the same thing without any second app: Video Boost pairs
+  with your phone's own "Wireless debugging" and runs those `settings` commands
+  itself. Setup below.
 
 ### Full-auto with Shizuku (optional)
 
@@ -211,6 +217,35 @@ only to flip its own accessibility service back on after a sensitive app closes.
 That's it. From then on, opening a sensitive app pauses Video Boost silently and
 closing it turns Video Boost back on automatically. If Shizuku ever isn't running,
 the app quietly falls back to the reminder notification.
+
+### Full-auto without Shizuku: wireless ADB (optional)
+
+If you'd rather not install a second app, Video Boost can talk to your phone's
+own **Wireless debugging** directly. It pairs once, over localhost, and from then
+on it can turn its accessibility service on and re-enable it after a sensitive
+app closes — the exact same `settings` commands, no root, no Shizuku.
+
+1. **Enable Wireless debugging.** Settings → System → Developer options →
+   **Wireless debugging** (unlock Developer options first by tapping the build
+   number 7 times).
+2. **Pair.** In Wireless debugging tap **"Pair device with pairing code"**. In
+   Video Boost open **No Shizuku? Use wireless ADB**, type the 6-digit code (the
+   IP and port are discovered automatically over mDNS) and tap **Pair**.
+3. Use **Turn on Video Boost now** to enable the service the first time (skips
+   the "Restricted setting" wall), and/or flip **Full-auto (wireless ADB)**.
+
+After a reboot you have to re-enable the "Wireless debugging" toggle once (an
+Android limitation — Shizuku has the same one); then tap **Reconnect**. No new
+pairing code is needed, because the paired key is kept.
+
+This mode is built on the open-source
+[libadb-android](https://github.com/MuntashirAkon/libadb-android) (Apache-2.0),
+which bundles [spake2-android](https://github.com/MuntashirAkon/spake2-java)
+(**LGPL-3.0**) for the pairing handshake and BouncyCastle (MIT). Note that it is
+a community library that has not been independently security-audited, and it
+exercises the same shell-level privilege ADB has — enable it only if you're
+comfortable with that. Nothing leaves the device: the connection is to your own
+phone over localhost.
 
 ## If it stops working (maintenance)
 

@@ -20,8 +20,8 @@ android {
         applicationId = "com.agustin.videoboostao"
         minSdk = 33
         targetSdk = 36
-        versionCode = 10
-        versionName = "2.8"
+        versionCode = 11
+        versionName = "2.9"
     }
 
     signingConfigs {
@@ -85,4 +85,19 @@ dependencies {
     // funciona sin él.
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
+
+    // Cliente ADB embebido: alternativa in-app a Shizuku (empareja con el
+    // "Wireless debugging" del propio dispositivo y corre los mismos comandos
+    // shell). libadb-android arrastra spake2-android (LGPL-3.0, para el pairing
+    // SPAKE2) y BouncyCastle (MIT). sun-security-android genera el certificado
+    // X.509; conscrypt provee el TLS del daemon ADB; hiddenapibypass abre las
+    // APIs ocultas que conscrypt necesita en Android 9+.
+    implementation("com.github.MuntashirAkon:libadb-android:3.1.1")
+    implementation("com.github.MuntashirAkon:sun-security-android:1.1")
+    implementation("org.conscrypt:conscrypt-android:2.5.3")
+    implementation("org.lsposed.hiddenapibypass:hiddenapibypass:6.1")
+
+    // Corrutinas: el pairing/connect/exec de ADB son I/O de red bloqueante y
+    // deben correr fuera del hilo principal.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 }

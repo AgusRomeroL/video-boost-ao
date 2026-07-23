@@ -14,26 +14,13 @@ class UserService : IUserService.Stub() {
         System.exit(0)
     }
 
-    override fun getForegroundPackage(): String {
-        val out = exec("dumpsys activity activities")
-        // Busca "...ResumedActivity=ActivityRecord{hash u0 <pkg>/<act> ...}"
-        // (cubre topResumedActivity / mResumedActivity según versión).
-        val m = Regex("""ResumedActivity=[^\n]*?\bu\d+\s+([a-zA-Z0-9._]+)/""").find(out)
-        return m?.groupValues?.getOrNull(1) ?: ""
-    }
+    // Los comandos viven en AdbShellCommands para no divergir de la vía ADB
+    // ([AdbPrivilegedShell]); aquí solo se provee el ejecutor Runtime.exec.
+    override fun getForegroundPackage(): String =
+        AdbShellCommands.foregroundPackage(::exec)
 
-    override fun enableAccessibilityService(component: String): Boolean {
-        val current = exec("settings get secure enabled_accessibility_services").trim()
-        val services = current
-            .split(':')
-            .filter { it.isNotBlank() && it != "null" }
-            .toMutableSet()
-        services.add(component)
-        val joined = services.joinToString(":")
-        exec("settings put secure enabled_accessibility_services '$joined'")
-        exec("settings put secure accessibility_enabled 1")
-        return true
-    }
+    override fun enableAccessibilityService(component: String): Boolean =
+        AdbShellCommands.enableAccessibilityService(component, ::exec)
 
     private fun exec(cmd: String): String = try {
         val p = Runtime.getRuntime().exec(arrayOf("sh", "-c", cmd))

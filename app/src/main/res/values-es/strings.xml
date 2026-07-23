@@ -52,6 +52,7 @@
     <!-- Full-auto (Shizuku) + recordatorios -->
     <string name="fullauto_title">Full-auto y recordatorios</string>
     <string name="fullauto_status_shizuku">Full-auto activo: se reactiva solo tras una app sensible.</string>
+    <string name="fullauto_status_adb">Full-auto activo (ADB inalámbrico): se reactiva solo tras una app sensible.</string>
     <string name="fullauto_status_usage">Recordatorios activos: te avisa cuando cerrás la app.</string>
     <string name="fullauto_status_off">Te avisa al abrir la app. Tocá para configurar más.</string>
     <string name="fullauto_body">Por defecto el aviso aparece al abrir una app sensible. Con monitoreo, la notificación es silenciosa mientras la app está abierta y recién te avisa cuando la cerrás. Con Shizuku, Video Boost además se reactiva solo — sin tocar nada.</string>
@@ -70,6 +71,33 @@
     <string name="fullauto_step2_body">Abrí Shizuku e iniciálo por depuración inalámbrica (Android 11+), una PC con ADB, o root. La propia guía de Shizuku te lleva paso a paso. Puede que tengas que reiniciarlo tras reiniciar el teléfono.</string>
     <string name="fullauto_step3_title">Activá el full-auto</string>
     <string name="fullauto_step3_body">Volvé acá, activá “Full-auto (Shizuku)” arriba y aceptá el permiso que pide Shizuku. Listo — Video Boost maneja las apps sensibles solo.</string>
+
+    <!-- Alternativa in-app a Shizuku: auto-permiso por ADB inalámbrico -->
+    <string name="adb_section_title">¿Sin Shizuku? Usá ADB inalámbrico</string>
+    <string name="adb_status_ready">ADB inalámbrico emparejado y full-auto activo.</string>
+    <string name="adb_status_paired_disconnected">Emparejado. Tras reiniciar, reactivá la depuración inalámbrica y reconectá.</string>
+    <string name="adb_status_off">Emparejá una vez para activar y reactivar Video Boost sin Shizuku.</string>
+    <string name="adb_section_body">En vez de instalar Shizuku, Video Boost puede hablar directo con la “Depuración inalámbrica” de tu teléfono. Emparejás una vez y puede encender su servicio de accesibilidad y reactivarlo tras cerrarse una app sensible — sin una segunda app.</string>
+    <string name="adb_step1_title">Activá la Depuración inalámbrica</string>
+    <string name="adb_step1_body">En Opciones de desarrollador, activá “Depuración inalámbrica”. (Primero habilitá Opciones de desarrollador tocando 7 veces el número de compilación.)</string>
+    <string name="adb_open_devoptions">Abrir Opciones de desarrollador</string>
+    <string name="adb_step2_title">Emparejá con un código</string>
+    <string name="adb_step2_body">En Depuración inalámbrica, tocá “Vincular dispositivo con un código”, escribí acá el código de 6 dígitos y emparejá. La IP y el puerto se detectan solos.</string>
+    <string name="adb_code_label">Código de vinculación</string>
+    <string name="adb_host_label">IP (auto)</string>
+    <string name="adb_port_label">Puerto</string>
+    <string name="adb_btn_pair">Emparejar</string>
+    <string name="adb_discovering">Buscando el dispositivo…</string>
+    <string name="adb_pairing">Emparejando…</string>
+    <string name="adb_connecting">Conectando…</string>
+    <string name="adb_btn_reconnect">Reconectar</string>
+    <string name="adb_btn_enable_now">Encender Video Boost ahora</string>
+    <string name="adb_fullauto_switch">Full-auto (ADB inalámbrico)</string>
+    <string name="adb_reboot_hint">Tras reiniciar tenés que reactivar “Depuración inalámbrica” una vez; luego tocá Reconectar. No hace falta un código nuevo.</string>
+    <string name="adb_error_no_device">No se encontró el dispositivo. Abrí primero la pantalla de vinculación, o escribí IP y puerto a mano.</string>
+    <string name="adb_error_pair_failed">Falló el emparejamiento. Revisá el código y que la pantalla de vinculación siga abierta.</string>
+    <string name="adb_error_connect_failed">No se pudo conectar. Verificá que “Depuración inalámbrica” esté activa.</string>
+    <string name="adb_attribution">Usa la librería de código abierto libadb-android (incluye spake2-android, LGPL-3.0). Ningún dato sale de tu dispositivo.</string>
 
     <!-- Notificación -->
     <string name="notif_channel_name">Recordatorios de reactivación</string>
