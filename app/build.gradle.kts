@@ -20,8 +20,8 @@ android {
         applicationId = "com.agustin.videoboostao"
         minSdk = 33
         targetSdk = 36
-        versionCode = 9
-        versionName = "2.7"
+        versionCode = 10
+        versionName = "2.8"
     }
 
     signingConfigs {
@@ -46,6 +46,7 @@ android {
 
     buildFeatures {
         compose = true
+        aidl = true
     }
 
     lint {
@@ -78,4 +79,10 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.1")
+
+    // Shizuku: re-activar el servicio de accesibilidad sin root (shell UID)
+    // para el modo full-auto. Solo se usa si el usuario tiene Shizuku; la app
+    // funciona sin él.
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
 }

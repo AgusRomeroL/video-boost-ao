@@ -49,12 +49,47 @@
     <string name="bank_manage_section_auto">Automatically flagged</string>
     <string name="bank_manage_section_all">All apps</string>
 
+    <!-- Full-auto (Shizuku) + smart reminders -->
+    <string name="fullauto_title">Full-auto &amp; reminders</string>
+    <string name="fullauto_status_shizuku">Full-auto on: re-enables itself after a sensitive app.</string>
+    <string name="fullauto_status_usage">Smart reminders on: alerts you when the app closes.</string>
+    <string name="fullauto_status_off">Reminds you on the app opening. Tap to set up more.</string>
+    <string name="fullauto_body">By default the reminder shows when a sensitive app opens. With monitoring, the notification is silent while the app is open and only alerts you when you close it. With Shizuku, Video Boost also turns itself back on automatically — no tapping.</string>
+    <string name="fullauto_switch">Full-auto (Shizuku)</string>
+    <string name="fullauto_shizuku_ready">Shizuku is connected and ready.</string>
+    <string name="fullauto_shizuku_needs_perm">Shizuku is running — grant permission to Video Boost.</string>
+    <string name="fullauto_shizuku_absent">Shizuku not detected. See the steps below.</string>
+    <string name="fullauto_grant_shizuku">Grant Shizuku permission</string>
+    <string name="fullauto_usage_hint">No Shizuku? Grant “Usage access” and you\'ll still get the alert when the sensitive app closes (you re-enable manually).</string>
+    <string name="fullauto_grant_usage">Grant Usage access</string>
+    <string name="fullauto_tutorial_title">Set up Shizuku</string>
+    <string name="fullauto_step1_title">Install Shizuku</string>
+    <string name="fullauto_step1_body">Get the free Shizuku app from the Play Store or its website.</string>
+    <string name="fullauto_step1_action">Open shizuku.rikka.app</string>
+    <string name="fullauto_step2_title">Start Shizuku</string>
+    <string name="fullauto_step2_body">Open Shizuku and start it via wireless debugging (Android 11+), a computer with ADB, or root. Shizuku\'s own guide walks you through it. You may need to restart it after a reboot.</string>
+    <string name="fullauto_step3_title">Turn on full-auto</string>
+    <string name="fullauto_step3_body">Come back here, flip “Full-auto (Shizuku)” above and allow the permission Shizuku asks for. Done — Video Boost now handles sensitive apps by itself.</string>
+
     <!-- Notification -->
     <string name="notif_channel_name">Re-enable reminders</string>
     <string name="notif_channel_desc">Reminds you to turn Video Boost back on after a sensitive app.</string>
     <string name="notif_title">Video Boost is off</string>
     <string name="notif_text">It turned off because a sensitive app opened. Tap to turn it back on when you\'re done.</string>
     <string name="notif_text_named">It turned off for %1$s. Tap to turn it back on when you\'re done.</string>
+    <!-- Silent "paused" notification while a sensitive app is open -->
+    <string name="notif_channel_paused_name">Paused for sensitive apps</string>
+    <string name="notif_channel_paused_desc">Silent notice shown while a sensitive app is open.</string>
+    <string name="notif_paused_title">Video Boost paused</string>
+    <string name="notif_paused_text">Paused while a sensitive app is open. It comes back when you leave it.</string>
+    <string name="notif_paused_text_named">Paused while %1$s is open. It comes back when you leave it.</string>
+    <!-- Alerting notification when the sensitive app closes -->
+    <string name="notif_closed_title">Turn Video Boost back on</string>
+    <string name="notif_closed_text">The sensitive app is closed. Tap to turn Video Boost back on.</string>
+    <string name="notif_closed_text_named">%1$s is closed. Tap to turn Video Boost back on.</string>
+    <!-- Alerting notification when full-auto re-enabled it -->
+    <string name="notif_reenabled_title">Video Boost is back on</string>
+    <string name="notif_reenabled_text">It re-enabled itself now that the sensitive app is closed.</string>
 
     <!-- Acciones -->
     <string name="btn_try_now">Try it now</string>

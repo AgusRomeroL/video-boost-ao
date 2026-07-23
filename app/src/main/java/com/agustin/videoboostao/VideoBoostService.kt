@@ -58,6 +58,7 @@ class VideoBoostService : AccessibilityService() {
         // Si volvió a habilitarse, ya no está "apagado por el banco".
         Prefs.setDisabledByBank(this, false)
         Notifications.cancel(this)
+        Notifications.cancelPaused(this)
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -89,7 +90,17 @@ class VideoBoostService : AccessibilityService() {
         ) {
             Log.i(TAG, "App sensible en primer plano ($pkg); deshabilitando el servicio")
             Prefs.setDisabledByBank(this, true)
-            Notifications.showReenableReminder(this, appLabel(pkg))
+            val label = appLabel(pkg)
+            if (Capabilities.canMonitorClose(this)) {
+                // Notificación silenciosa + monitor que detecta el cierre (y, con
+                // Shizuku, re-activa solo). Arrancar el FGS ANTES de disableSelf()
+                // mientras el a11y service sigue activo (exención de background).
+                BankWatchService.start(this, pkg, label)
+            } else {
+                // Sin monitoreo: aviso normal al abrir para no perder el
+                // recordatorio de re-activar a mano.
+                Notifications.showReenableReminder(this, label)
+            }
             disableSelf()
             return
         }

@@ -8,6 +8,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -39,6 +41,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -128,11 +131,16 @@ private val ExpressiveShapes = androidx.compose.material3.Shapes(
 @Composable
 private fun MainScreen(onManageApps: () -> Unit) {
     val context = LocalContext.current
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     var serviceEnabled by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
     var featureEnabled by remember { mutableStateOf(Prefs.featureEnabled(context)) }
     var autoDisableBanks by remember { mutableStateOf(Prefs.autoDisableForBanks(context)) }
     var disabledByBank by remember { mutableStateOf(Prefs.disabledByBank(context)) }
+    var fullAuto by remember { mutableStateOf(Prefs.fullAutoShizuku(context)) }
+    var shizukuAvailable by remember { mutableStateOf(ShizukuManager.isAvailable()) }
+    var shizukuReady by remember { mutableStateOf(ShizukuManager.hasPermission()) }
+    var usageAccess by remember { mutableStateOf(Capabilities.hasUsageAccess(context)) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
     LifecycleResumeEffect(Unit) {
@@ -140,6 +148,10 @@ private fun MainScreen(onManageApps: () -> Unit) {
         featureEnabled = Prefs.featureEnabled(context)
         autoDisableBanks = Prefs.autoDisableForBanks(context)
         disabledByBank = Prefs.disabledByBank(context)
+        fullAuto = Prefs.fullAutoShizuku(context)
+        shizukuAvailable = ShizukuManager.isAvailable()
+        shizukuReady = ShizukuManager.hasPermission()
+        usageAccess = Capabilities.hasUsageAccess(context)
         onPauseOrDispose { }
     }
 
@@ -195,6 +207,42 @@ private fun MainScreen(onManageApps: () -> Unit) {
                         serviceEnabled = false
                     },
                     onManageApps = onManageApps,
+                    fullAuto = fullAuto,
+                    shizukuAvailable = shizukuAvailable,
+                    shizukuReady = shizukuReady,
+                    usageAccess = usageAccess,
+                    onToggleFullAuto = { want ->
+                        fullAuto = want
+                        Prefs.setFullAutoShizuku(context, want)
+                        if (want && !shizukuReady) {
+                            ShizukuManager.requestPermission { granted ->
+                                mainHandler.post {
+                                    shizukuReady = granted
+                                    shizukuAvailable = ShizukuManager.isAvailable()
+                                }
+                            }
+                        }
+                    },
+                    onGrantShizuku = {
+                        ShizukuManager.requestPermission { granted ->
+                            mainHandler.post {
+                                shizukuReady = granted
+                                shizukuAvailable = ShizukuManager.isAvailable()
+                            }
+                        }
+                    },
+                    onGrantUsageAccess = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    },
+                    onOpenShizukuSite = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://shizuku.rikka.app/"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    },
                 )
             }
 
@@ -520,6 +568,14 @@ private fun BankCard(
     onToggleAuto: (Boolean) -> Unit,
     onTurnOffNow: () -> Unit,
     onManageApps: () -> Unit,
+    fullAuto: Boolean,
+    shizukuAvailable: Boolean,
+    shizukuReady: Boolean,
+    usageAccess: Boolean,
+    onToggleFullAuto: (Boolean) -> Unit,
+    onGrantShizuku: () -> Unit,
+    onGrantUsageAccess: () -> Unit,
+    onOpenShizukuSite: () -> Unit,
 ) {
     Card(
         shape = MaterialTheme.shapes.extraLarge,
@@ -557,6 +613,141 @@ private fun BankCard(
             OutlinedButton(onClick = onTurnOffNow, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.bank_turn_off_now))
             }
+            FullAutoSection(
+                fullAuto = fullAuto,
+                shizukuAvailable = shizukuAvailable,
+                shizukuReady = shizukuReady,
+                usageAccess = usageAccess,
+                onToggleFullAuto = onToggleFullAuto,
+                onGrantShizuku = onGrantShizuku,
+                onGrantUsageAccess = onGrantUsageAccess,
+                onOpenShizukuSite = onOpenShizukuSite,
+            )
+        }
+    }
+}
+
+/**
+ * Sección "Full-auto y recordatorios" dentro de la tarjeta de apps sensibles.
+ * Explica y controla el monitoreo del cierre: notificación silenciosa al abrir
+ * + normal al cerrar, y (con Shizuku) re-activación automática.
+ */
+@Composable
+private fun FullAutoSection(
+    fullAuto: Boolean,
+    shizukuAvailable: Boolean,
+    shizukuReady: Boolean,
+    usageAccess: Boolean,
+    onToggleFullAuto: (Boolean) -> Unit,
+    onGrantShizuku: () -> Unit,
+    onGrantUsageAccess: () -> Unit,
+    onOpenShizukuSite: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.fullauto_title),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    text = stringResource(
+                        when {
+                            fullAuto && shizukuReady -> R.string.fullauto_status_shizuku
+                            usageAccess -> R.string.fullauto_status_usage
+                            else -> R.string.fullauto_status_off
+                        }
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = if (expanded) "▲" else "▼",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        if (expanded) {
+            Text(
+                text = stringResource(R.string.fullauto_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            // Toggle full-auto (Shizuku).
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.fullauto_switch),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(12.dp))
+                Switch(checked = fullAuto && shizukuReady, onCheckedChange = onToggleFullAuto)
+            }
+
+            // Estado de Shizuku + acción para conceder permiso.
+            val shizukuStatus = when {
+                shizukuReady -> R.string.fullauto_shizuku_ready
+                shizukuAvailable -> R.string.fullauto_shizuku_needs_perm
+                else -> R.string.fullauto_shizuku_absent
+            }
+            Text(
+                text = stringResource(shizukuStatus),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (fullAuto && shizukuAvailable && !shizukuReady) {
+                OutlinedButton(onClick = onGrantShizuku, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.fullauto_grant_shizuku))
+                }
+            }
+
+            // Fallback sin Shizuku: Acceso de uso.
+            if (!usageAccess) {
+                Text(
+                    text = stringResource(R.string.fullauto_usage_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedButton(onClick = onGrantUsageAccess, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.fullauto_grant_usage))
+                }
+            }
+
+            // Tutorial de Shizuku.
+            HorizontalDivider()
+            Text(
+                text = stringResource(R.string.fullauto_tutorial_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            StepBlock(
+                number = 1,
+                title = stringResource(R.string.fullauto_step1_title),
+                body = stringResource(R.string.fullauto_step1_body),
+            ) {
+                OutlinedButton(onClick = onOpenShizukuSite, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.fullauto_step1_action))
+                }
+            }
+            StepBlock(
+                number = 2,
+                title = stringResource(R.string.fullauto_step2_title),
+                body = stringResource(R.string.fullauto_step2_body),
+            ) {}
+            StepBlock(
+                number = 3,
+                title = stringResource(R.string.fullauto_step3_title),
+                body = stringResource(R.string.fullauto_step3_body),
+            ) {}
         }
     }
 }
