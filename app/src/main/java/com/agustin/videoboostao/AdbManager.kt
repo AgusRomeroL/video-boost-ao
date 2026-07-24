@@ -24,6 +24,8 @@ import io.github.muntashirakon.adb.AbsAdbConnectionManager
 import io.github.muntashirakon.adb.android.AdbMdns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
@@ -59,6 +61,12 @@ object AdbManager {
 
     @Volatile
     private var manager: ConnectionManager? = null
+
+    /** Un solo connect a la vez (ver [connect]). */
+    private val connectMutex = Mutex()
+
+    /** Un solo comando a la vez sobre la conexión (ver [exec]). */
+    private val execLock = Any()
 
     data class Endpoint(val host: String, val port: Int)
 
@@ -114,27 +122,153 @@ object AdbManager {
      * Conecta al daemon (`_adb-tls-connect._tcp`) usando la clave ya emparejada.
      * [autoConnect] descubre el puerto por mDNS internamente. Requiere que el
      * usuario haya (re)activado "Wireless debugging" tras el último reinicio.
+     *
+     * No se valida con una sonda: en el Pixel 10 Pro XL se comprobó que un
+     * comando se ejecuta aunque leer su salida falle, así que una sonda que
+     * "falla" no significa conexión inútil y descartarla por eso solo hacía
+     * perder tiempo. Quien necesite certeza verifica el efecto, no la salida
+     * (ver [Capabilities.accessibilityServiceEnabled]).
      */
     suspend fun connect(context: Context, timeoutMs: Long = 12_000): Result<Unit> =
         withContext(Dispatchers.IO) {
-            runCatching {
-                val m = manager(context)
-                if (m.isConnected) return@runCatching
-                val ok = m.autoConnect(context, timeoutMs)
-                if (!ok) error("autoConnect() falló")
-            }.onFailure { Log.w(TAG, "ADB connect falló", it) }
+            // Serializado: dos conexiones concurrentes (el connect inicial y un
+            // reintento, p. ej.) se cerraban mutuamente el manager compartido y
+            // todo comando posterior moría con "Stream closed.".
+            connectMutex.withLock {
+                runCatching {
+                    repeat(2) { attempt ->
+                        val m = manager(context)
+                        val connected = try {
+                            m.isConnected || m.autoConnect(context, timeoutMs)
+                        } catch (e: Exception) {
+                            Log.w(TAG, "ADB autoConnect lanzó (intento ${attempt + 1}): ${e.message}")
+                            false
+                        }
+                        if (connected) return@runCatching
+                        invalidateIf(m)
+                    }
+                    error("autoConnect() falló")
+                }.onFailure { Log.w(TAG, "ADB connect falló: ${it.message}") }
+            }
         }
 
     /** Un [PrivilegedShell] sobre la conexión ADB viva. El caller debe haber
      *  llamado a [connect] con éxito antes. */
-    fun shell(context: Context): PrivilegedShell = AdbPrivilegedShell(manager(context))
+    fun shell(context: Context): PrivilegedShell = AdbPrivilegedShell()
 
-    /** Cierra la conexión (no borra la clave; sigue emparejado). */
-    fun disconnect() {
+    /** Hay un manager con conexión abierta (no garantiza que responda). */
+    fun isConnected(): Boolean = manager?.isConnected == true
+
+    /** Timeout duro por comando: un stream colgado no debe congelar al caller
+     *  (ver la carrera descrita en [execRetrying]). */
+    private const val EXEC_TIMEOUT_MS = 4_000L
+
+    /** Timeout corto para comandos cuyo efecto se verifica aparte: ahí no se
+     *  espera la salida, así que no tiene sentido aguantar el timeout largo. */
+    const val FIRE_TIMEOUT_MS = 1_200L
+
+    /** Intentos de abrir stream sobre una misma conexión antes de descartarla. */
+    private const val STREAM_ATTEMPTS = 4
+    private const val STREAM_RETRY_MS = 200L
+
+    /**
+     * Corre `shell:cmd` y devuelve stdout, o null si no se pudo.
+     *
+     * El fallo en libadb 3.1.1 es POR STREAM, no por conexión: abrir un stream
+     * es una carrera (ver [execRetrying]) y falla o se cuelga de forma
+     * intermitente, mientras que la conexión de fondo sigue sana (se comprobó
+     * en el Pixel 10 Pro XL: varios comandos seguidos funcionan tras un fallo).
+     * Por eso primero se reintenta el stream sobre la MISMA conexión, que es
+     * barato, y solo si todos fallan se da la conexión por perdida.
+     */
+    fun exec(
+        cmd: String,
+        timeoutMs: Long = EXEC_TIMEOUT_MS,
+        streamAttempts: Int = STREAM_ATTEMPTS,
+    ): String? {
+        val m = manager ?: return null
+        // Un comando a la vez: los streams comparten la conexión y entrelazarlos
+        // la corrompe.
+        return synchronized(execLock) {
+            repeat(streamAttempts) { i ->
+                val task = java.util.concurrent.FutureTask { rawExec(m, cmd) }
+                Thread(task, "vb-adb-exec").apply { isDaemon = true }.start()
+                try {
+                    return@synchronized task.get(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+                } catch (e: Exception) {
+                    val cause = (e.cause ?: e).let { "${it.javaClass.simpleName}: ${it.message}" }
+                    Log.w(TAG, "ADB stream falló ($cause), intento ${i + 1}/$streamAttempts")
+                    // El hilo del intento colgado queda como daemon; el
+                    // siguiente abre su propio stream.
+                    if (i < streamAttempts - 1) Thread.sleep(STREAM_RETRY_MS)
+                }
+            }
+            // Solo si sigue siendo la conexión vigente: si otro hilo ya la
+            // reemplazó, cerrarla mataría una conexión sana.
+            invalidateIf(m)
+            null
+        }
+    }
+
+    private fun rawExec(m: ConnectionManager, cmd: String): String {
+        val stream = m.openStream("shell:$cmd")
         try {
-            manager?.close()
+            return stream.openInputStream().bufferedReader().use { it.readText() }
+        } finally {
+            try {
+                stream.close()
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    /**
+     * Corre [cmd] reintentando con conexión nueva. `openStream` de libadb 3.1.1
+     * tiene una carrera: si la respuesta del daemon llega antes de que se entre
+     * al `wait()`, el notify se pierde y la llamada se cuelga para siempre. El
+     * timeout de [exec] la corta, pero la única salida es rehacer la conexión;
+     * de ahí los reintentos. Esta carrera era la causa de que el full-auto
+     * fallara "a veces" y de que otras veces solo reaccionara al cabo de los 15
+     * minutos del tope de sesión.
+     */
+    suspend fun execRetrying(
+        context: Context,
+        cmd: String,
+        attempts: Int = 3,
+        valid: (String) -> Boolean = { it.isNotBlank() },
+    ): String? {
+        repeat(attempts) { i ->
+            // `valid` y no "salida no vacía": el servicio `shell:` de adbd
+            // mezcla stderr en stdout, así que un error del shell también
+            // llega como salida y se tomaría por éxito.
+            exec(cmd)?.let { if (valid(it)) return it }
+            if (i < attempts - 1) {
+                Log.w(TAG, "ADB: comando sin resultado válido (intento ${i + 1}); reconecto")
+                disconnect()
+                if (connect(context).isFailure) return null
+            }
+        }
+        Log.w(TAG, "ADB: comando falló tras $attempts intentos")
+        return null
+    }
+
+    /** Cierra la conexión y descarta el manager (no borra la clave; sigue
+     *  emparejado). La próxima operación parte con un manager nuevo. */
+    fun disconnect() {
+        synchronized(this) { close(manager) }
+    }
+
+    /** Descarta [m] solo si sigue siendo la conexión vigente. */
+    private fun invalidateIf(m: ConnectionManager) {
+        synchronized(this) { if (manager === m) close(m) }
+    }
+
+    private fun close(m: ConnectionManager?) {
+        try {
+            m?.close()
         } catch (_: Exception) {
         }
+        manager = null
     }
 
     // --- interno ---
@@ -280,38 +414,24 @@ object AdbManager {
 }
 
 /**
- * [PrivilegedShell] sobre una conexión ADB viva (la que mantiene
- * [AbsAdbConnectionManager]). Cada comando abre un stream `shell:` propio, lee
- * su stdout hasta EOF y lo cierra. Reusa [AdbShellCommands] para no divergir de
- * la vía Shizuku. Las llamadas son bloqueantes: correr en [Dispatchers.IO].
+ * [PrivilegedShell] sobre la conexión ADB de [AdbManager]. Delegar cada comando
+ * en [AdbManager.exec] (en vez de capturar el manager) hace que el shell
+ * sobreviva a una invalidación/reconexión: siempre usa la conexión vigente y
+ * hereda el timeout duro. Reusa [AdbShellCommands] para no divergir de la vía
+ * Shizuku. Las llamadas son bloqueantes: correr en [Dispatchers.IO].
  */
-class AdbPrivilegedShell internal constructor(
-    private val manager: AbsAdbConnectionManager,
-) : PrivilegedShell {
+class AdbPrivilegedShell internal constructor() : PrivilegedShell {
 
-    override fun getForegroundPackage(): String = AdbShellCommands.foregroundPackage(::exec)
+    override fun getForegroundPackage(): String =
+        AdbShellCommands.foregroundPackage { AdbManager.exec(it).orEmpty() }
 
     override fun enableAccessibilityService(component: String): Boolean =
-        AdbShellCommands.enableAccessibilityService(component, ::exec)
+        AdbShellCommands.enableAccessibilityService(component) { AdbManager.exec(it).orEmpty() }
+
+    override fun grantUsageAccess(pkg: String): Boolean =
+        AdbShellCommands.grantUsageAccess(pkg) { AdbManager.exec(it).orEmpty() }
 
     override fun close() {
-        try {
-            manager.close()
-        } catch (_: Exception) {
-        }
-    }
-
-    private fun exec(cmd: String): String = try {
-        val stream = manager.openStream("shell:$cmd")
-        try {
-            stream.openInputStream().bufferedReader().use { it.readText() }
-        } finally {
-            try {
-                stream.close()
-            } catch (_: Exception) {
-            }
-        }
-    } catch (_: Exception) {
-        ""
+        AdbManager.disconnect()
     }
 }
