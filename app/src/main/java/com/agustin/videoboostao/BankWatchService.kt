@@ -95,9 +95,6 @@ class BankWatchService : Service() {
             shell = if (binder != null && binder.pingBinder()) {
                 ShizukuPrivilegedShell(IUserService.Stub.asInterface(binder))
             } else null
-            // Igual que en la vía ADB: con el shell vivo, asegurar el sondeo
-            // local para no depender del binder en cada lectura.
-            if (shell != null) ioScope.launch { ensureUsageAccess() }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -252,12 +249,24 @@ class BankWatchService : Service() {
         return null
     }
 
-    /** Con shell privilegiado y sin "Acceso de uso", concedérselo: un comando
-     *  una sola vez a cambio de no volver a sondear por ADB nunca más. */
+    /**
+     * Con shell privilegiado y sin "Acceso de uso", concedérselo: un comando
+     * una sola vez a cambio de no volver a sondear por ADB nunca más.
+     *
+     * Solo en la vía ADB. Shizuku corre los comandos sobre su binder, que no
+     * sufre la fragilidad de streams que motiva todo esto, así que ahí no hay
+     * nada que optimizar ni, por tanto, permiso que conceder.
+     */
     private fun ensureUsageAccess() {
         if (Capabilities.hasUsageAccess(this)) return
         val s = shell ?: return
-        if (s.grantUsageAccess(packageName)) {
+        s.grantUsageAccess(packageName)
+        // Confirmar por efecto, no por la salida del comando: esta se pierde a
+        // menudo aunque el comando sí se ejecute (ver [AdbManager.exec]).
+        if (Capabilities.hasUsageAccess(this)) {
+            // Queda anotado como concedido por nosotros para poder revocarlo si
+            // el usuario apaga el full-auto (ver [Prefs.usageAccessSelfGranted]).
+            Prefs.setUsageAccessSelfGranted(this, true)
             Log.i(TAG, "BankWatch: 'Acceso de uso' concedido; sondeo local")
         }
     }
