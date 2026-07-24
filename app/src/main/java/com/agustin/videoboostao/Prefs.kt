@@ -19,6 +19,7 @@ object Prefs {
     private const val KEY_FULL_AUTO_SHIZUKU = "full_auto_shizuku"
     private const val KEY_FULL_AUTO_ADB = "full_auto_adb"
     private const val KEY_ADB_PAIRED = "adb_paired"
+    private const val KEY_USAGE_SELF_GRANTED = "usage_access_self_granted"
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -95,5 +96,24 @@ object Prefs {
 
     fun setAdbPaired(context: Context, value: Boolean) {
         prefs(context).edit().putBoolean(KEY_ADB_PAIRED, value).apply()
+    }
+
+    /**
+     * El "Acceso de uso" lo concedió la propia app (vía shell privilegiado), no
+     * el usuario a mano. Solo entonces se revoca al apagar el full-auto: un
+     * permiso que el usuario dio por su cuenta no es nuestro para quitarlo.
+     */
+    fun usageAccessSelfGranted(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_USAGE_SELF_GRANTED, false)
+
+    /**
+     * `commit()` y no `apply()`: esto se escribe desde [BankWatchService] justo
+     * antes de que el servicio se pare, y con el servicio de accesibilidad
+     * apagado el proceso es candidato a morir enseguida. Un `apply()` puede
+     * quedarse sin volcar a disco, y perder la marca significa dejar el permiso
+     * concedido para siempre. Es una escritura rara y fuera del camino caliente.
+     */
+    fun setUsageAccessSelfGranted(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_USAGE_SELF_GRANTED, value).commit()
     }
 }

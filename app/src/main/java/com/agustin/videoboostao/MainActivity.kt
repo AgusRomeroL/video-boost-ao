@@ -1068,8 +1068,13 @@ private fun AdbPairingCard(
                                 onAdbReadyChanged()
                                 // Concederse "Acceso de uso" ya, para que la
                                 // primera sesión con app sensible ya sondee en
-                                // local en vez de por ADB (ver BankWatchService).
-                                if (want) scope.launch { InitialEnable.grantUsageAccessViaAdb(context) }
+                                // local en vez de por ADB (ver BankWatchService);
+                                // y devolverlo al apagar, para no dejar puesto un
+                                // permiso que solo el full-auto necesitaba.
+                                scope.launch {
+                                    if (want) InitialEnable.grantUsageAccessViaAdb(context)
+                                    else InitialEnable.revokeUsageAccessViaAdb(context)
+                                }
                             },
                         )
                     }

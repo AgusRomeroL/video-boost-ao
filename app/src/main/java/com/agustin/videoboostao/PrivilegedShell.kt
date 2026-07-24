@@ -22,6 +22,10 @@ interface PrivilegedShell {
      *  plano en local, sin tocar el shell privilegiado en cada sondeo. */
     fun grantUsageAccess(pkg: String): Boolean
 
+    /** Deshace [grantUsageAccess]: al apagar el full-auto no debe quedar
+     *  concedido un permiso que solo el full-auto necesitaba. */
+    fun revokeUsageAccess(pkg: String): Boolean
+
     /** Libera recursos. No-op para Shizuku (el servicio maneja el unbind);
      *  cierra la conexión TLS para ADB. */
     fun close()
@@ -91,6 +95,13 @@ object AdbShellCommands {
         val out = exec("appops set $pkg GET_USAGE_STATS allow; appops get $pkg GET_USAGE_STATS")
         return out.contains("allow")
     }
+
+    /** `default` (no `deny`): devuelve el permiso al estado de fábrica, que es
+     *  lo que el usuario vería si nunca hubiéramos tocado nada. */
+    fun revokeUsageAccess(pkg: String, exec: (String) -> String): Boolean {
+        val out = exec("appops set $pkg GET_USAGE_STATS default; appops get $pkg GET_USAGE_STATS")
+        return !out.contains("allow")
+    }
 }
 
 /** Adapta el binder de Shizuku ([IUserService]) a [PrivilegedShell]. */
@@ -109,6 +120,12 @@ class ShizukuPrivilegedShell(private val service: IUserService) : PrivilegedShel
 
     override fun grantUsageAccess(pkg: String): Boolean = try {
         service.grantUsageAccess(pkg)
+    } catch (_: Exception) {
+        false
+    }
+
+    override fun revokeUsageAccess(pkg: String): Boolean = try {
+        service.revokeUsageAccess(pkg)
     } catch (_: Exception) {
         false
     }

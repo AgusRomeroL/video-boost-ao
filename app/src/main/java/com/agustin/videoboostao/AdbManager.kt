@@ -431,6 +431,9 @@ class AdbPrivilegedShell internal constructor() : PrivilegedShell {
     override fun grantUsageAccess(pkg: String): Boolean =
         AdbShellCommands.grantUsageAccess(pkg) { AdbManager.exec(it).orEmpty() }
 
+    override fun revokeUsageAccess(pkg: String): Boolean =
+        AdbShellCommands.revokeUsageAccess(pkg) { AdbManager.exec(it).orEmpty() }
+
     override fun close() {
         AdbManager.disconnect()
     }

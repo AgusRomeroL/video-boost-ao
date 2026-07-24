@@ -14,4 +14,7 @@ interface IUserService {
 
     // Concede GET_USAGE_STATS a `pkg` para poder leer el primer plano en local.
     boolean grantUsageAccess(String pkg) = 3;
+
+    // Devuelve GET_USAGE_STATS de `pkg` a su valor por defecto.
+    boolean revokeUsageAccess(String pkg) = 4;
 }
