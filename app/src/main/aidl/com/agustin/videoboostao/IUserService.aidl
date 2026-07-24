@@ -11,4 +11,7 @@ interface IUserService {
 
     // Agrega `component` a enabled_accessibility_services y enciende a11y.
     boolean enableAccessibilityService(String component) = 2;
+
+    // Concede GET_USAGE_STATS a `pkg` para poder leer el primer plano en local.
+    boolean grantUsageAccess(String pkg) = 3;
 }

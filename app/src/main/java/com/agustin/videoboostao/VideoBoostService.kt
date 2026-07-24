@@ -59,6 +59,11 @@ class VideoBoostService : AccessibilityService() {
         Prefs.setDisabledByBank(this, false)
         Notifications.cancel(this)
         Notifications.cancelPaused(this)
+        // Reactivación con la cámara ya en primer plano (p. ej. full-auto tras
+        // cerrar una app sensible): no llegará ningún evento que dispare el
+        // chequeo, así que se lanza uno acá; si la cámara no está, no hace nada.
+        // Respeta el interruptor maestro, igual que onAccessibilityEvent.
+        if (Prefs.featureEnabled(this)) handler.postDelayed(attemptRunnable, ATTEMPT_DELAY_MS)
     }
 
     private val handler = Handler(Looper.getMainLooper())

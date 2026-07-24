@@ -50,4 +50,21 @@ object Capabilities {
     /** Cualquier vía de monitoreo del cierre de la app sensible. */
     fun canMonitorClose(context: Context): Boolean =
         fullAutoReady(context) || hasUsageAccess(context)
+
+    /**
+     * ¿[component] está en la lista de servicios de accesibilidad activos?
+     *
+     * Lectura LOCAL: escribir secure settings necesita privilegios, pero leerlos
+     * no. Es la forma fiable de confirmar una reactivación: el comando ADB que
+     * la ejecuta puede escribir bien y aun así fallar al devolver su salida
+     * (ver [AdbManager.exec]), así que verificar por ADB daba falsos negativos
+     * y provocaba reintentos que reactivaban el servicio una y otra vez.
+     */
+    fun accessibilityServiceEnabled(context: Context, component: String): Boolean {
+        val enabled = android.provider.Settings.Secure.getString(
+            context.contentResolver,
+            android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ) ?: return false
+        return enabled.split(':').any { it.equals(component, ignoreCase = true) }
+    }
 }
