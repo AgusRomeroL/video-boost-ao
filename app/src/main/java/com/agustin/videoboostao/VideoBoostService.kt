@@ -345,12 +345,7 @@ class VideoBoostService : AccessibilityService() {
     }
 
     /** Nombre visible de una app instalada, o null si no se puede resolver. */
-    private fun appLabel(pkg: String): String? = try {
-        val pm = packageManager
-        pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-    } catch (_: Exception) {
-        null
-    }
+    private fun appLabel(pkg: String): String? = SensitiveApps.label(this, pkg)
 
     override fun onDestroy() {
         if (instance === this) instance = null

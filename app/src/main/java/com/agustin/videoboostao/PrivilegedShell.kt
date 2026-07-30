@@ -26,6 +26,24 @@ interface PrivilegedShell {
      *  concedido un permiso que solo el full-auto necesitaba. */
     fun revokeUsageAccess(pkg: String): Boolean
 
+    /** Auto-concede `WRITE_SECURE_SETTINGS` a [pkg] para que reactivar sea una
+     *  escritura local (ver [SecureSettings] y el manifest). `pm grant` alcanza
+     *  porque el permiso lleva el flag `development`; no hace falta root. */
+    fun grantSecureSettings(pkg: String): Boolean
+
+    /**
+     * Deshace [grantSecureSettings]. **Sin llamador automático a propósito**, a
+     * diferencia del "Acceso de uso": revocarlo exige abrir una conexión ADB, o
+     * sea re-mostrar la notificación de "Depuración inalámbrica" del sistema que
+     * este permiso vino justamente a eliminar, y a cambio de nada — no da acceso
+     * a ningún dato, solo deja escribir los settings que la app ya escribía por
+     * ADB, y desaparece al desinstalar. (Comprobado en el Pixel 10 Pro XL:
+     * `pm revoke` NO mata el proceso ni tira el servicio de accesibilidad, así
+     * que el motivo es ese y no el riesgo de matar la app.) Existe para simetría
+     * y por si algún día se ofrece como acción explícita del usuario.
+     */
+    fun revokeSecureSettings(pkg: String): Boolean
+
     /** Libera recursos. No-op para Shizuku (el servicio maneja el unbind);
      *  cierra la conexión TLS para ADB. */
     fun close()
@@ -102,6 +120,24 @@ object AdbShellCommands {
         val out = exec("appops set $pkg GET_USAGE_STATS default; appops get $pkg GET_USAGE_STATS")
         return !out.contains("allow")
     }
+
+    /**
+     * `pm grant` no imprime nada cuando funciona, así que su salida no sirve de
+     * verificación (y por ADB se pierde a menudo de todas formas): acá solo se
+     * detecta el fallo explícito, y quien llama confirma por efecto con
+     * [SecureSettings.canWriteNow].
+     */
+    fun grantSecureSettings(pkg: String, exec: (String) -> String): Boolean =
+        !failed(exec("pm grant $pkg android.permission.WRITE_SECURE_SETTINGS"))
+
+    fun revokeSecureSettings(pkg: String, exec: (String) -> String): Boolean =
+        !failed(exec("pm revoke $pkg android.permission.WRITE_SECURE_SETTINGS"))
+
+    /** El servicio `shell:` de adbd mezcla stderr en stdout, así que un fallo de
+     *  `pm` llega como salida normal; estas son sus formas conocidas. */
+    private fun failed(out: String): Boolean =
+        out.contains("Exception") || out.contains("not allowed") ||
+            out.contains("has not requested permission")
 }
 
 /** Adapta el binder de Shizuku ([IUserService]) a [PrivilegedShell]. */
@@ -126,6 +162,18 @@ class ShizukuPrivilegedShell(private val service: IUserService) : PrivilegedShel
 
     override fun revokeUsageAccess(pkg: String): Boolean = try {
         service.revokeUsageAccess(pkg)
+    } catch (_: Exception) {
+        false
+    }
+
+    override fun grantSecureSettings(pkg: String): Boolean = try {
+        service.grantSecureSettings(pkg)
+    } catch (_: Exception) {
+        false
+    }
+
+    override fun revokeSecureSettings(pkg: String): Boolean = try {
+        service.revokeSecureSettings(pkg)
     } catch (_: Exception) {
         false
     }

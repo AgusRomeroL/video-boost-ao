@@ -47,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -73,6 +74,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
 
@@ -144,6 +146,8 @@ private fun MainScreen(onManageApps: () -> Unit) {
     var shizukuReady by remember { mutableStateOf(ShizukuManager.hasPermission()) }
     var usageAccess by remember { mutableStateOf(Capabilities.hasUsageAccess(context)) }
     var adbReady by remember { mutableStateOf(Capabilities.adbReady(context)) }
+    var localSecure by remember { mutableStateOf(Capabilities.canWriteSecureSettings(context)) }
+    var reenableDelay by remember { mutableStateOf(Prefs.reenableDelayMin(context)) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
     LifecycleResumeEffect(Unit) {
@@ -156,6 +160,8 @@ private fun MainScreen(onManageApps: () -> Unit) {
         shizukuReady = ShizukuManager.hasPermission()
         usageAccess = Capabilities.hasUsageAccess(context)
         adbReady = Capabilities.adbReady(context)
+        localSecure = Capabilities.canWriteSecureSettings(context)
+        reenableDelay = Prefs.reenableDelayMin(context)
         onPauseOrDispose { }
     }
 
@@ -211,11 +217,20 @@ private fun MainScreen(onManageApps: () -> Unit) {
                         serviceEnabled = false
                     },
                     onManageApps = onManageApps,
+                    reenableDelay = reenableDelay,
+                    // Sin capacidad de reactivarse solo no hay nada que demorar:
+                    // el usuario reactiva a mano y la espera la pone él. Mismo
+                    // criterio que [Capabilities.canReenableItself], pero sobre
+                    // el estado ya izado para que recomponga solo.
+                    canReenable = localSecure || adbReady || (fullAuto && shizukuReady),
+                    onDelayChange = { reenableDelay = it },
+                    onDelayCommit = { Prefs.setReenableDelayMin(context, reenableDelay) },
                     fullAuto = fullAuto,
                     shizukuAvailable = shizukuAvailable,
                     shizukuReady = shizukuReady,
                     usageAccess = usageAccess,
                     adbReady = adbReady,
+                    localSecure = localSecure,
                     onToggleFullAuto = { want ->
                         fullAuto = want
                         Prefs.setFullAutoShizuku(context, want)
@@ -261,8 +276,12 @@ private fun MainScreen(onManageApps: () -> Unit) {
             // sensibles). No borra ni sustituye la opción de Shizuku.
             AdbPairingCard(
                 serviceEnabled = serviceEnabled,
+                localSecure = localSecure,
                 onServiceEnabled = { serviceEnabled = isAccessibilityServiceEnabled(context) },
-                onAdbReadyChanged = { adbReady = Capabilities.adbReady(context) },
+                onAdbReadyChanged = {
+                    adbReady = Capabilities.adbReady(context)
+                    localSecure = Capabilities.canWriteSecureSettings(context)
+                },
             )
 
             CostCard()
@@ -583,11 +602,16 @@ private fun BankCard(
     onToggleAuto: (Boolean) -> Unit,
     onTurnOffNow: () -> Unit,
     onManageApps: () -> Unit,
+    reenableDelay: Int,
+    canReenable: Boolean,
+    onDelayChange: (Int) -> Unit,
+    onDelayCommit: () -> Unit,
     fullAuto: Boolean,
     shizukuAvailable: Boolean,
     shizukuReady: Boolean,
     usageAccess: Boolean,
     adbReady: Boolean,
+    localSecure: Boolean,
     onToggleFullAuto: (Boolean) -> Unit,
     onGrantShizuku: () -> Unit,
     onGrantUsageAccess: () -> Unit,
@@ -623,6 +647,41 @@ private fun BankCard(
                 Spacer(Modifier.width(12.dp))
                 Switch(checked = autoDisable, onCheckedChange = onToggleAuto)
             }
+            if (autoDisable && canReenable) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.bank_delay_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = if (reenableDelay == 0) {
+                            stringResource(R.string.bank_delay_immediate)
+                        } else {
+                            stringResource(R.string.bank_delay_value, reenableDelay)
+                        },
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Slider(
+                    value = reenableDelay.toFloat(),
+                    // El slider avisa en cada frame del arrastre: el estado se
+                    // actualiza siempre (es barato) y en Prefs se escribe una
+                    // sola vez, al soltar.
+                    onValueChange = { onDelayChange(it.roundToInt()) },
+                    onValueChangeFinished = onDelayCommit,
+                    valueRange = 0f..Prefs.MAX_REENABLE_DELAY_MIN.toFloat(),
+                    // `steps` son los valores INTERMEDIOS: 9 da paradas 0..10.
+                    steps = Prefs.MAX_REENABLE_DELAY_MIN - 1,
+                )
+                Text(
+                    text = stringResource(R.string.bank_delay_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             OutlinedButton(onClick = onManageApps, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.bank_manage_apps))
             }
@@ -635,6 +694,7 @@ private fun BankCard(
                 shizukuReady = shizukuReady,
                 usageAccess = usageAccess,
                 adbReady = adbReady,
+                localSecure = localSecure,
                 onToggleFullAuto = onToggleFullAuto,
                 onGrantShizuku = onGrantShizuku,
                 onGrantUsageAccess = onGrantUsageAccess,
@@ -656,6 +716,7 @@ private fun FullAutoSection(
     shizukuReady: Boolean,
     usageAccess: Boolean,
     adbReady: Boolean,
+    localSecure: Boolean,
     onToggleFullAuto: (Boolean) -> Unit,
     onGrantShizuku: () -> Unit,
     onGrantUsageAccess: () -> Unit,
@@ -723,6 +784,20 @@ private fun FullAutoSection(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            // Estado de la reactivación local: es lo que evita abrir ADB (y que
+            // el sistema muestre su notificación de depuración inalámbrica).
+            Text(
+                text = stringResource(
+                    if (localSecure) R.string.local_secure_ready else R.string.local_secure_hint,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (localSecure) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
             if (fullAuto && shizukuAvailable && !shizukuReady) {
                 OutlinedButton(onClick = onGrantShizuku, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.fullauto_grant_shizuku))
@@ -783,6 +858,7 @@ private enum class AdbPhase { Idle, Discovering, AwaitingCode, Pairing, Connecti
 @Composable
 private fun AdbPairingCard(
     serviceEnabled: Boolean,
+    localSecure: Boolean,
     onServiceEnabled: () -> Unit,
     onAdbReadyChanged: () -> Unit,
 ) {
@@ -1066,18 +1142,36 @@ private fun AdbPairingCard(
                                 fullAutoAdb = want
                                 Prefs.setFullAutoAdb(context, want)
                                 onAdbReadyChanged()
-                                // Concederse "Acceso de uso" ya, para que la
-                                // primera sesión con app sensible ya sondee en
-                                // local en vez de por ADB (ver BankWatchService);
-                                // y devolverlo al apagar, para no dejar puesto un
-                                // permiso que solo el full-auto necesitaba.
+                                // Concederse ya los dos permisos que hacen que el
+                                // full-auto no dependa de ADB en caliente: sondeo
+                                // local del primer plano y escritura local para
+                                // reactivar (ver BankWatchService y SecureSettings).
+                                // Al apagar se devuelve el "Acceso de uso" —el de
+                                // escritura no, ver PrivilegedShell—.
                                 scope.launch {
-                                    if (want) InitialEnable.grantUsageAccessViaAdb(context)
+                                    if (want) InitialEnable.grantFullAutoPermissionsViaAdb(context)
                                     else InitialEnable.revokeUsageAccessViaAdb(context)
+                                    onAdbReadyChanged()
                                 }
                             },
                         )
                     }
+
+                    Text(
+                        text = stringResource(
+                            if (localSecure) {
+                                R.string.local_secure_ready
+                            } else {
+                                R.string.local_secure_hint
+                            },
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (localSecure) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
 
                     Text(
                         text = stringResource(R.string.adb_reboot_hint),

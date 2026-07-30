@@ -15,6 +15,15 @@
          Special access: el usuario lo concede en "Acceso de uso". -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
+    <!-- Reactivación LOCAL del servicio de accesibilidad tras una app sensible.
+         Protección `development`: no la concede el usuario, se auto-concede una
+         sola vez con `pm grant` desde el shell privilegiado (ADB inalámbrico o
+         Shizuku). Con esto reactivar es una escritura local y deja de abrir una
+         conexión ADB por sesión, que era lo que hacía re-sonar la notificación
+         del sistema de "Depuración inalámbrica". Sin conceder, la app funciona
+         igual por la vía de siempre (ver SecureSettings). -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <!--
       Visibilidad de paquetes (Android 11+): sin esto, PackageManager solo ve

@@ -41,6 +41,10 @@
     <string name="bank_card_title">Apps sensibles</string>
     <string name="bank_card_body">Los bancos y otras apps sensibles bloquean el teléfono si hay un servicio de accesibilidad activo (anti-fraude). Para evitarlo, esta app se apaga sola cuando detecta una, así nunca te bloquea. Una notificación te deja reactivarla con un toque cuando termines.</string>
     <string name="bank_auto_switch">Apagar automáticamente con apps sensibles</string>
+    <string name="bank_delay_title">Esperar antes de volver a activarse</string>
+    <string name="bank_delay_value">%1$d min</string>
+    <string name="bank_delay_immediate">Al instante</string>
+    <string name="bank_delay_hint">Margen desde que salís de una app sensible, para que si volvés enseguida no se encuentre un servicio de accesibilidad activo. Si volvés durante la espera, se cancela; y si abrís la Cámara, Video Boost se activa al toque.</string>
     <string name="bank_turn_off_now">Apagar el servicio ahora</string>
     <string name="bank_manage_apps">Elegir apps sensibles</string>
     <string name="bank_manage_title">Apps sensibles</string>
@@ -117,6 +121,10 @@
     <string name="adb_notif_done_title">ADB inalámbrico emparejado</string>
     <string name="adb_notif_done_text">Video Boost ya puede activarse solo. Full-auto activado.</string>
 
+    <!-- Reactivación local (WRITE_SECURE_SETTINGS) -->
+    <string name="local_secure_ready">Reactivación local lista: ya no abre la conexión ADB, así que el sistema deja de mostrar su notificación de depuración inalámbrica. También funciona tras reiniciar.</string>
+    <string name="local_secure_hint">Con el full-auto encendido, la app se concede el permiso para reactivarse en local. Hasta entonces abre la conexión ADB cada vez, y el sistema muestra su notificación de depuración inalámbrica.</string>
+
     <!-- Notificación -->
     <string name="notif_channel_name">Recordatorios de reactivación</string>
     <string name="notif_channel_desc">Te recuerda encender Video Boost después de una app sensible.</string>
@@ -133,6 +141,15 @@
     <string name="notif_closed_title">Reactivá Video Boost</string>
     <string name="notif_closed_text">La app sensible se cerró. Tocá para reactivar Video Boost.</string>
     <string name="notif_closed_text_named">%1$s se cerró. Tocá para reactivar Video Boost.</string>
+    <!-- Canal silencioso: el servicio se apagó por una app sensible -->
+    <string name="notif_channel_silent_name">Servicio apagado (silencioso)</string>
+    <string name="notif_channel_silent_desc">Aviso silencioso mientras el servicio está apagado por una app sensible.</string>
+    <!-- Cuenta atrás interactiva antes de reactivar -->
+    <string name="notif_countdown_title">Video Boost vuelve en un rato</string>
+    <string name="notif_countdown_text">La app sensible se cerró. Espero %1$d min por si volvés y después Video Boost se activa solo. Si abrís la Cámara, se activa al toque.</string>
+    <string name="notif_countdown_text_named">%1$s se cerró. Espero %2$d min por si volvés y después Video Boost se activa solo. Si abrís la Cámara, se activa al toque.</string>
+    <string name="notif_countdown_action_wait">Esperar +%1$d min</string>
+    <string name="notif_countdown_action_now">Activar ya</string>
     <!-- Aviso normal cuando el full-auto lo reactivó solo -->
     <string name="notif_reenabled_title">Video Boost volvió</string>
     <string name="notif_reenabled_text">Se reactivó solo ahora que la app sensible está cerrada.</string>

@@ -434,6 +434,15 @@ class AdbPrivilegedShell internal constructor() : PrivilegedShell {
     override fun revokeUsageAccess(pkg: String): Boolean =
         AdbShellCommands.revokeUsageAccess(pkg) { AdbManager.exec(it).orEmpty() }
 
+    // Timeout largo (el de por defecto) a propósito: `pm grant` tarda bastante
+    // más que un `settings put`, y con el timeout corto el stream se abandona
+    // antes de que el comando termine y la conexión se da por perdida.
+    override fun grantSecureSettings(pkg: String): Boolean =
+        AdbShellCommands.grantSecureSettings(pkg) { AdbManager.exec(it).orEmpty() }
+
+    override fun revokeSecureSettings(pkg: String): Boolean =
+        AdbShellCommands.revokeSecureSettings(pkg) { AdbManager.exec(it).orEmpty() }
+
     override fun close() {
         AdbManager.disconnect()
     }

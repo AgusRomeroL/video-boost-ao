@@ -28,6 +28,12 @@ class UserService : IUserService.Stub() {
     override fun revokeUsageAccess(pkg: String): Boolean =
         AdbShellCommands.revokeUsageAccess(pkg, ::exec)
 
+    override fun grantSecureSettings(pkg: String): Boolean =
+        AdbShellCommands.grantSecureSettings(pkg, ::exec)
+
+    override fun revokeSecureSettings(pkg: String): Boolean =
+        AdbShellCommands.revokeSecureSettings(pkg, ::exec)
+
     private fun exec(cmd: String): String = try {
         val p = Runtime.getRuntime().exec(arrayOf("sh", "-c", cmd))
         val out = p.inputStream.bufferedReader().use { it.readText() }

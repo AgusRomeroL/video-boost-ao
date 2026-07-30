@@ -65,5 +65,8 @@ object ShizukuManager {
             .daemon(false)
             .processNameSuffix("shizuku_uds")
             .debuggable(false)
-            .version(1)
+            // v2: [IUserService] ganó grantSecureSettings/revokeSecureSettings.
+            // Sin subir la versión, Shizuku reutiliza el proceso cacheado creado
+            // contra la interfaz vieja y esas transacciones fallan.
+            .version(2)
 }

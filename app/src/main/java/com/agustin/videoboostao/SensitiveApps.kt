@@ -32,6 +32,16 @@ object SensitiveApps {
     fun isBuiltinSensitive(pkg: String): Boolean =
         pkg in BUILTIN || PREFIXES.any { pkg.startsWith(it) }
 
+    /** Nombre visible de una app instalada, o null si no se puede resolver. Lo
+     *  usan el servicio de accesibilidad y el monitor para nombrar la app en las
+     *  notificaciones. */
+    fun label(context: Context, pkg: String): String? = try {
+        val pm = context.packageManager
+        pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
+    } catch (_: Exception) {
+        null
+    }
+
     /** Prefijos con nombre de banco muy distintivo (cubre variantes regionales). */
     private val PREFIXES = listOf(
         "com.nu.",

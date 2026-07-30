@@ -113,6 +113,11 @@ no need to disable accessibility.
   mirrored; the service picks the correct one (verified against the live UI).
 - Idempotent and safe: reads the toggle state before acting; never turns
   Video Boost off; gives up quietly after a few attempts if the UI changed.
+- **Grace period for sensitive apps**: after you leave your banking app it waits
+  a configurable 0–10 minutes (3 by default) before turning itself back on, so
+  stepping out for five seconds and going back doesn't trip the bank's
+  anti-fraud check. The countdown notification lets you wait longer or turn it
+  on now, and opening the Camera turns it on immediately.
 - Material 3 UI (Compose) with dynamic color, guided onboarding, master
   switch, and an update checker.
 - No root and no analytics. Full-auto is optional and off by default; when you
@@ -189,6 +194,20 @@ much nicer:
 So the notification is only *silent* while you're actually in the bank app, and
 only *alerts* you once you're out — and with full-auto you don't even have to tap.
 
+**The grace period.** With full-auto, turning the service back on the instant you
+leave is a problem of its own: step out of your bank for five seconds to check
+something, come back, and the bank now sees an active accessibility service and
+blocks you. So the re-enable waits — **3 minutes by default, adjustable from 0 to
+10** under *Sensitive apps → Wait before turning back on*. During the wait:
+
+- Going back into any sensitive app **cancels** it and returns to the silent
+  paused state.
+- Opening **Pixel Camera** re-enables **immediately**, so the delay never costs
+  you Video Boost.
+- The countdown notification (the one that alerts) carries **"Wait +N min"** and
+  **"Turn on now"**; when it finally re-enables, that same notification becomes
+  "Video Boost is back on" without making a second sound.
+
 - **Usage access** is a standard Android permission (Settings → Special access →
   Usage access). It only lets the app see which app is in the foreground; nothing
   leaves the device.
@@ -245,9 +264,26 @@ a notification with an inline reply where you type the code.
 > **"Enter the code here instead (advanced)"**, but on most phones leaving the
 > pairing screen ends the session — the notification flow above avoids that.
 
+**It only uses the connection once.** When you turn full-auto on, the app spends
+that one connection granting itself two permissions: *Usage access* (so it can
+see which app is in the foreground locally) and `WRITE_SECURE_SETTINGS` (so it
+can re-enable its own accessibility service with a local write). Both are granted
+with the same `pm`/`appops` commands you'd type over ADB. From then on a
+sensitive-app session opens **no ADB connection at all** — which is also why
+Android's own "Wireless debugging" notification stops reappearing every few
+seconds while your bank is open.
+
+`WRITE_SECURE_SETTINGS` is a `development`-level permission: it can't be granted
+by tapping something in Settings, only by a shell (`pm grant`), and it only lets
+the app write settings it was already writing over ADB. It is not revoked when
+you turn full-auto off (revoking needs another ADB connection, and the permission
+grants no access to your data); uninstalling the app removes it.
+
 After a reboot you have to re-enable the "Wireless debugging" toggle once (an
-Android limitation — Shizuku has the same one); then tap **Reconnect**. No new
-pairing code is needed, because the paired key is kept.
+Android limitation — Shizuku has the same one) and tap **Reconnect** — but only
+if the local permission above isn't granted yet. Once it is, full-auto keeps
+working after a reboot with wireless debugging switched off. No new pairing code
+is ever needed, because the paired key is kept.
 
 This mode is built on the open-source
 [libadb-android](https://github.com/MuntashirAkon/libadb-android) (Apache-2.0),

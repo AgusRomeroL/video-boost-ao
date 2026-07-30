@@ -17,4 +17,11 @@ interface IUserService {
 
     // Devuelve GET_USAGE_STATS de `pkg` a su valor por defecto.
     boolean revokeUsageAccess(String pkg) = 4;
+
+    // Auto-concede WRITE_SECURE_SETTINGS a `pkg` (permiso `development`, se
+    // puede conceder con `pm grant`) para que reactivar sea una escritura local.
+    boolean grantSecureSettings(String pkg) = 5;
+
+    // Deshace grantSecureSettings. Sin llamador automático (ver PrivilegedShell).
+    boolean revokeSecureSettings(String pkg) = 6;
 }

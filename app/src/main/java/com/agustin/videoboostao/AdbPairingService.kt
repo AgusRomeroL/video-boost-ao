@@ -127,6 +127,12 @@ class AdbPairingService : Service() {
                     // Emparejado: dejar el full-auto ADB listo (el usuario abrió
                     // este flujo justamente para eso).
                     Prefs.setFullAutoAdb(this@AdbPairingService, true)
+                    // Y aprovechar el momento (recién emparejado, con la
+                    // "Depuración inalámbrica" encendida) para concederse los dos
+                    // permisos que evitan volver a abrir ADB en cada sesión:
+                    // sondeo local del primer plano y escritura local. Una
+                    // conexión, una vez, en vez de una por app sensible.
+                    InitialEnable.grantFullAutoPermissionsViaAdb(this@AdbPairingService)
                     Notifications.showAdbPairingSuccess(this@AdbPairingService)
                     cleanup()
                     stopForeground(STOP_FOREGROUND_REMOVE)

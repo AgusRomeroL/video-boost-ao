@@ -20,6 +20,11 @@ object Prefs {
     private const val KEY_FULL_AUTO_ADB = "full_auto_adb"
     private const val KEY_ADB_PAIRED = "adb_paired"
     private const val KEY_USAGE_SELF_GRANTED = "usage_access_self_granted"
+    private const val KEY_SECURE_SELF_GRANTED = "secure_settings_self_granted"
+    private const val KEY_REENABLE_DELAY_MIN = "reenable_delay_min"
+
+    /** Tope del deslizador de la UI y del acumulado de esperas. */
+    const val MAX_REENABLE_DELAY_MIN = 10
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -115,5 +120,37 @@ object Prefs {
      */
     fun setUsageAccessSelfGranted(context: Context, value: Boolean) {
         prefs(context).edit().putBoolean(KEY_USAGE_SELF_GRANTED, value).commit()
+    }
+
+    /**
+     * `WRITE_SECURE_SETTINGS` lo concedió la app y no el usuario por su cuenta.
+     * Solo informativo: a diferencia del "Acceso de uso", este NO se revoca solo
+     * (ver [PrivilegedShell.revokeSecureSettings]). `commit()` por el mismo
+     * motivo que [setUsageAccessSelfGranted]: se escribe desde un servicio que
+     * está por morir.
+     */
+    fun secureSettingsSelfGranted(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_SECURE_SELF_GRANTED, false)
+
+    fun setSecureSettingsSelfGranted(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_SECURE_SELF_GRANTED, value).commit()
+    }
+
+    /**
+     * Minutos de gracia antes de reactivar el servicio cuando la app sensible se
+     * cierra (0 = al instante, el comportamiento histórico).
+     *
+     * Existe porque salir del banco cinco segundos a mirar un dato y volver
+     * hacía que la app encontrara un servicio de accesibilidad recién activado y
+     * mostrara su error anti-fraude. Durante la espera se sigue vigilando el
+     * primer plano: volver a la app sensible la cancela (ver [BankWatchService]).
+     */
+    fun reenableDelayMin(context: Context): Int =
+        prefs(context).getInt(KEY_REENABLE_DELAY_MIN, 3)
+
+    fun setReenableDelayMin(context: Context, minutes: Int) {
+        prefs(context).edit()
+            .putInt(KEY_REENABLE_DELAY_MIN, minutes.coerceIn(0, MAX_REENABLE_DELAY_MIN))
+            .apply()
     }
 }

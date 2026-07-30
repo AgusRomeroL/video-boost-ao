@@ -1,7 +1,9 @@
 package com.agustin.videoboostao
 
+import android.Manifest
 import android.app.AppOpsManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Process
 
 /**
@@ -38,6 +40,27 @@ object Capabilities {
     /** Full-auto: cualquiera de las dos vías privilegiadas. Re-activa solo. */
     fun fullAutoReady(context: Context): Boolean =
         shizukuReady(context) || adbReady(context)
+
+    /**
+     * `WRITE_SECURE_SETTINGS` concedido a este proceso (auto-concedido con
+     * `pm grant`, ver el manifest). Chequeo barato para la UI; para decidir si
+     * hacer una escritura conviene [SecureSettings.canWriteNow], que no depende
+     * de la caché de permisos local.
+     *
+     * OJO: esto NO entra en [fullAutoReady] ni en [canMonitorClose] a propósito.
+     * El permiso permite REACTIVAR, no leer el primer plano; si contara como
+     * full-auto, [VideoBoostService] arrancaría un [BankWatchService] que nunca
+     * podría detectar el cierre de la app sensible.
+     */
+    fun canWriteSecureSettings(context: Context): Boolean =
+        context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) ==
+            PackageManager.PERMISSION_GRANTED
+
+    /** ¿Puede la app volver a activarse sola al cerrarse la app sensible? Es lo
+     *  que habilita la cuenta atrás de gracia: sin esto el usuario reactiva a
+     *  mano y no hay nada que demorar. */
+    fun canReenableItself(context: Context): Boolean =
+        canWriteSecureSettings(context) || fullAutoReady(context)
 
     /** Mecanismo elegido. Prefiere Shizuku si ambos están configurados, para
      *  que los usuarios actuales no vean ningún cambio de comportamiento. */

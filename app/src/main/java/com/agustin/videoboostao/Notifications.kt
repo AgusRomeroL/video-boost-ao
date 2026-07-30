@@ -11,24 +11,44 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
 
 /**
- * Notificaciones del flujo de apps sensibles. Dos canales:
- * - [CHANNEL_ALERT] (importancia default): avisos "normales" con sonido —
- *   recordatorio al cerrar la app / servicio reactivado / (fallback) al abrir.
- * - [CHANNEL_PAUSED] (importancia mínima, silenciosa): "en pausa" mientras la
- *   app sensible está abierta; es a la vez la notificación del foreground
- *   service [BankWatchService].
+ * Notificaciones del flujo de apps sensibles. El criterio de sonido: **suena lo
+ * que pide una decisión** (la app sensible se cerró y hay una cuenta atrás
+ * corriendo), **no suena lo informativo** (se apagó el servicio, ya volvió).
+ * Cuatro canales:
+ * - [CHANNEL_ALERT] (importancia default): la cuenta atrás al cerrarse la app y
+ *   el recordatorio de reactivar a mano.
+ * - [CHANNEL_REMINDER_SILENT] (baja, sin sonido): el aviso de que el servicio se
+ *   apagó al abrirse la app sensible. Baja y no mínima porque, sin monitoreo, es
+ *   el único aviso que recibe el usuario y tiene que conservar icono en la barra.
+ * - [CHANNEL_PAUSED] (mínima, silenciosa): "en pausa" mientras la app sensible
+ *   está abierta; es a la vez la notificación del foreground service
+ *   [BankWatchService].
+ * - [CHANNEL_ADB_PAIRING] (alta): el emparejamiento ADB.
+ *
+ * Los canales son inmutables una vez creados, así que cambiar la importancia de
+ * un aviso se hace moviéndolo a otro canal, nunca editando el suyo.
  */
 object Notifications {
 
     private const val CHANNEL_ALERT = "reenable_reminder"
+    private const val CHANNEL_REMINDER_SILENT = "reenable_silent"
     private const val CHANNEL_PAUSED = "bank_paused"
     private const val CHANNEL_ADB_PAIRING = "adb_pairing"
 
     private const val NOTIF_ID_ALERT = 1001
     const val NOTIF_ID_PAUSED = 1002
-    private const val NOTIF_ID_REENABLED = 1003
     const val NOTIF_ID_ADB_PAIRING = 1004
     private const val NOTIF_ID_ADB_PAIRING_DONE = 1005
+
+    /**
+     * Ciclo "la app sensible se cerró": cuenta atrás -> "Video Boost volvió".
+     * Un solo id para las dos cosas a propósito: así el aviso final es una
+     * ACTUALIZACIÓN de la cuenta atrás y, con `onlyAlertOnce`, no vuelve a
+     * sonar. Y es un id que [VideoBoostService.onServiceConnected] no cancela
+     * ([cancel] / [cancelPaused]), para que el aviso sobreviva al rebind del
+     * servicio de accesibilidad. (Reemplaza al viejo 1003.)
+     */
+    const val NOTIF_ID_REENABLE = 1006
 
     private fun ensureChannels(context: Context) {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
@@ -39,6 +59,19 @@ object Notifications {
                     context.getString(R.string.notif_channel_name),
                     NotificationManager.IMPORTANCE_DEFAULT,
                 ).apply { description = context.getString(R.string.notif_channel_desc) },
+            )
+        }
+        if (nm.getNotificationChannel(CHANNEL_REMINDER_SILENT) == null) {
+            nm.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_REMINDER_SILENT,
+                    context.getString(R.string.notif_channel_silent_name),
+                    NotificationManager.IMPORTANCE_LOW,
+                ).apply {
+                    description = context.getString(R.string.notif_channel_silent_desc)
+                    setSound(null, null)
+                    enableVibration(false)
+                },
             )
         }
         if (nm.getNotificationChannel(CHANNEL_PAUSED) == null) {
@@ -108,16 +141,100 @@ object Notifications {
         notify(context, NOTIF_ID_ALERT, alert(context, R.string.notif_closed_title, text))
     }
 
-    /** Aviso normal cuando el full-auto (Shizuku) reactivó el servicio solo. */
-    fun showReenabled(context: Context) {
+    /**
+     * Cuenta atrás de gracia antes de reactivar, con acciones para estirarla o
+     * cortarla. Es la notificación del foreground service durante esa fase (por
+     * eso `ongoing`: no se puede descartar y sus acciones siguen ahí), y no la
+     * postea directo cuando arranca: la devuelve para `startForeground`.
+     *
+     * El tiempo lo dibuja el sistema: [setWhen] con el instante límite en reloj
+     * de pared + cronómetro en cuenta atrás. Así el número baja solo, sin
+     * re-postear cada segundo — re-postear sería la forma segura de que el
+     * usuario silencie la app. Los minutos van también en el texto porque el
+     * cronómetro no se dibuja en todos los templates.
+     */
+    fun buildReenableCountdown(
+        context: Context,
+        appLabel: String?,
+        deadlineAt: Long,
+        delayMin: Int,
+        canSnooze: Boolean,
+    ): Notification {
         ensureChannels(context)
-        val text = context.getString(R.string.notif_reenabled_text)
-        notify(context, NOTIF_ID_REENABLED, alert(context, R.string.notif_reenabled_title, text))
+        val text = if (!appLabel.isNullOrBlank()) {
+            context.getString(R.string.notif_countdown_text_named, appLabel, delayMin)
+        } else {
+            context.getString(R.string.notif_countdown_text, delayMin)
+        }
+        val builder = NotificationCompat.Builder(context, CHANNEL_ALERT)
+            .setSmallIcon(R.drawable.ic_stat_videoboost)
+            .setContentTitle(context.getString(R.string.notif_countdown_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(true)
+            .setWhen(deadlineAt)
+            .setUsesChronometer(true)
+            .setChronometerCountDown(true)
+            .setContentIntent(openAppIntent(context))
+        if (canSnooze) {
+            builder.addAction(
+                bankAction(
+                    context,
+                    BankWatchService.ACTION_SNOOZE,
+                    REQ_SNOOZE,
+                    context.getString(R.string.notif_countdown_action_wait, delayMin),
+                ),
+            )
+        }
+        builder.addAction(
+            bankAction(
+                context,
+                BankWatchService.ACTION_NOW,
+                REQ_NOW,
+                context.getString(R.string.notif_countdown_action_now),
+            ),
+        )
+        return builder.build()
+    }
+
+    fun showReenableCountdown(
+        context: Context,
+        appLabel: String?,
+        deadlineAt: Long,
+        delayMin: Int,
+        canSnooze: Boolean,
+    ) {
+        notify(
+            context,
+            NOTIF_ID_REENABLE,
+            buildReenableCountdown(context, appLabel, deadlineAt, delayMin, canSnooze),
+        )
     }
 
     /**
-     * Fallback (sin capacidad de monitoreo): aviso normal al abrir la app
-     * sensible, para no dejar al usuario sin recordatorio de re-activar.
+     * Aviso de que el servicio volvió, en el mismo id que la cuenta atrás y con
+     * `onlyAlertOnce`: si venía de una cuenta atrás es una actualización y por
+     * tanto silenciosa (un solo sonido por ciclo); si no la hubo (retardo 0) es
+     * el primer post y suena, que es lo correcto porque ahí este ES el aviso del
+     * cierre.
+     */
+    fun showReenabled(context: Context) {
+        ensureChannels(context)
+        val text = context.getString(R.string.notif_reenabled_text)
+        notify(
+            context,
+            NOTIF_ID_REENABLE,
+            alert(context, R.string.notif_reenabled_title, text, onlyAlertOnce = true),
+        )
+    }
+
+    /**
+     * Aviso al abrir la app sensible (fallback sin capacidad de monitoreo), para
+     * no dejar al usuario sin recordatorio de re-activar. Silencioso: es
+     * informativo y llega en el peor momento posible, justo cuando el usuario
+     * está entrando al banco.
      */
     fun showReenableReminder(context: Context, appLabel: String?) {
         ensureChannels(context)
@@ -126,20 +243,59 @@ object Notifications {
         } else {
             context.getString(R.string.notif_text)
         }
-        notify(context, NOTIF_ID_ALERT, alert(context, R.string.notif_title, text))
+        notify(
+            context,
+            NOTIF_ID_ALERT,
+            alert(context, R.string.notif_title, text, channelId = CHANNEL_REMINDER_SILENT),
+        )
     }
 
-    private fun alert(context: Context, titleRes: Int, text: String): Notification =
-        NotificationCompat.Builder(context, CHANNEL_ALERT)
+    private fun alert(
+        context: Context,
+        titleRes: Int,
+        text: String,
+        channelId: String = CHANNEL_ALERT,
+        onlyAlertOnce: Boolean = false,
+    ): Notification =
+        NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_stat_videoboost)
             .setContentTitle(context.getString(titleRes))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setAutoCancel(true)
+            .setOnlyAlertOnce(onlyAlertOnce)
+            // Paridad con el canal para quien tenga los canales ya creados.
+            .setSilent(channelId == CHANNEL_REMINDER_SILENT)
             .setContentIntent(openAppIntent(context))
             .build()
 
+    /** Acción de la cuenta atrás. Va al propio [BankWatchService], que ya está
+     *  en primer plano: `getForegroundService` es el mismo patrón que usa el
+     *  emparejamiento ADB ([showAdbPairingCodeInput]). No hace falta un
+     *  BroadcastReceiver y el servicio sigue sin exportarse. */
+    private fun bankAction(
+        context: Context,
+        action: String,
+        requestCode: Int,
+        label: String,
+    ): NotificationCompat.Action {
+        val intent = Intent(context, BankWatchService::class.java).setAction(action)
+        val pending = PendingIntent.getForegroundService(
+            context, requestCode, intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        return NotificationCompat.Action.Builder(
+            R.drawable.ic_stat_videoboost,
+            label,
+            pending,
+        ).build()
+    }
+
     // --- Emparejamiento ADB (flujo por notificación, estilo Shizuku) ---
+
+    /** requestCodes de los PendingIntent (distintos o se sobreescriben). */
+    private const val REQ_SNOOZE = 1
+    private const val REQ_NOW = 2
 
     private fun adbCancelAction(context: Context): NotificationCompat.Action {
         val intent = Intent(context, AdbPairingService::class.java)
@@ -256,5 +412,10 @@ object Notifications {
 
     fun cancelPaused(context: Context) {
         NotificationManagerCompat.from(context).cancel(NOTIF_ID_PAUSED)
+    }
+
+    /** Cancela la cuenta atrás / el aviso de reactivado (id compartido). */
+    fun cancelReenable(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIF_ID_REENABLE)
     }
 }

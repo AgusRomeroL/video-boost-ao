@@ -41,6 +41,10 @@
     <string name="bank_card_title">Sensitive apps</string>
     <string name="bank_card_body">Banks and other sensitive apps block phones that have an active accessibility service (anti-fraud). To avoid that, this app turns itself off when it detects one, so you\'re never blocked. A reminder notification lets you turn it back on with one tap when you\'re done.</string>
     <string name="bank_auto_switch">Turn off automatically for sensitive apps</string>
+    <string name="bank_delay_title">Wait before turning back on</string>
+    <string name="bank_delay_value">%1$d min</string>
+    <string name="bank_delay_immediate">Right away</string>
+    <string name="bank_delay_hint">Grace period after you leave a sensitive app, so hopping back in doesn\'t find an active accessibility service. Going back during the wait cancels it, and opening the Camera turns Video Boost on right away.</string>
     <string name="bank_turn_off_now">Turn off the service now</string>
     <string name="bank_manage_apps">Choose sensitive apps</string>
     <string name="bank_manage_title">Sensitive apps</string>
@@ -117,6 +121,10 @@
     <string name="adb_notif_done_title">Wireless ADB paired</string>
     <string name="adb_notif_done_text">Video Boost can now enable itself. Full-auto is on.</string>
 
+    <!-- Local re-enable (WRITE_SECURE_SETTINGS) -->
+    <string name="local_secure_ready">Local re-enable ready: it no longer opens the ADB connection, so the system stops showing its wireless-debugging notification. Works after a reboot too.</string>
+    <string name="local_secure_hint">With full-auto on, the app grants itself permission to re-enable locally. Until then it opens the ADB connection every time, and the system shows its wireless-debugging notification.</string>
+
     <!-- Notification -->
     <string name="notif_channel_name">Re-enable reminders</string>
     <string name="notif_channel_desc">Reminds you to turn Video Boost back on after a sensitive app.</string>
@@ -133,6 +141,15 @@
     <string name="notif_closed_title">Turn Video Boost back on</string>
     <string name="notif_closed_text">The sensitive app is closed. Tap to turn Video Boost back on.</string>
     <string name="notif_closed_text_named">%1$s is closed. Tap to turn Video Boost back on.</string>
+    <!-- Silent channel: the service turned off for a sensitive app -->
+    <string name="notif_channel_silent_name">Service off (silent)</string>
+    <string name="notif_channel_silent_desc">Silent notice while the service is off for a sensitive app.</string>
+    <!-- Interactive countdown before re-enabling -->
+    <string name="notif_countdown_title">Video Boost comes back shortly</string>
+    <string name="notif_countdown_text">The sensitive app is closed. Waiting %1$d min in case you go back, then Video Boost turns itself on. Opening the Camera turns it on right away.</string>
+    <string name="notif_countdown_text_named">%1$s is closed. Waiting %2$d min in case you go back, then Video Boost turns itself on. Opening the Camera turns it on right away.</string>
+    <string name="notif_countdown_action_wait">Wait +%1$d min</string>
+    <string name="notif_countdown_action_now">Turn on now</string>
     <!-- Alerting notification when full-auto re-enabled it -->
     <string name="notif_reenabled_title">Video Boost is back on</string>
     <string name="notif_reenabled_text">It re-enabled itself now that the sensitive app is closed.</string>
