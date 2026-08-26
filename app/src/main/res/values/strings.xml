@@ -166,6 +166,106 @@
     <string name="update_available">Update available: v%1$s</string>
     <string name="btn_download_update">Download update</string>
 
+    <!-- Activation mode -->
+    <string name="mode_card_title">How it turns on</string>
+    <string name="mode_card_body">Two ways to run it. Always-on works on any phone; on-demand keeps the accessibility service switched off except while the Camera is open, and needs the special ADB permissions.</string>
+    <string name="mode_always_title">Always on</string>
+    <string name="mode_always_body">The accessibility service stays enabled and filters events in code. No special permissions, but sensitive apps force it to turn itself off.</string>
+    <string name="mode_ondemand_title">Only when the Camera opens</string>
+    <string name="mode_ondemand_body">The service stays off and switches itself on the moment Pixel Camera comes to the front, then off again when you leave. Banks never see it running, so there is nothing to turn off for them.</string>
+    <string name="mode_ondemand_locked">Needs two special permissions: “Usage access” to notice the Camera opening, and local write access to switch its own service. Pair wireless ADB (or Shizuku) from the wireless ADB screen and the app grants them to itself, once.</string>
+    <string name="mode_ondemand_ready">Ready: usage access and local write access are granted.</string>
+    <string name="mode_ondemand_missing_usage">Missing “Usage access”.</string>
+    <string name="mode_ondemand_missing_secure">Missing local write access (WRITE_SECURE_SETTINGS).</string>
+    <string name="mode_grant_now">Grant the permissions now</string>
+    <string name="mode_granting">Granting…</string>
+    <string name="mode_grant_failed">Could not grant them. Turn on “Wireless debugging” and pair the device in the wireless ADB screen, then try again.</string>
+    <string name="mode_linger_title">Stay on after leaving the Camera</string>
+    <string name="mode_linger_value">%1$d s</string>
+    <string name="mode_linger_immediate">Right away</string>
+    <string name="mode_linger_hint">Grace period so hopping out to the gallery and back does not switch the service off and on again. A sensitive app in the foreground cuts it short and switches off at once.</string>
+
+    <!-- On-demand status -->
+    <string name="status_ondemand_title">On demand</string>
+    <string name="status_ondemand_body">The service is off right now. It turns on by itself while the Camera is open and off again when you leave.</string>
+    <string name="status_ondemand_setup_body">On-demand mode needs the special ADB permissions. Grant them in “How it turns on”, or switch back to always-on.</string>
+    <string name="bank_not_needed_title">Sensitive apps: nothing to do</string>
+    <string name="bank_not_needed_body">In on-demand mode the service only exists inside the Camera, so a bank never runs alongside it. This section comes back if you switch to always-on.</string>
+
+    <!-- Notification controls -->
+    <string name="btn_notifications">Notifications</string>
+    <string name="notif_screen_title">Notifications</string>
+    <string name="notif_screen_hint">Turn off whatever you do not want. The ones Android requires while a service is running can be silenced, not hidden.</string>
+    <string name="notif_silence_title">Silence everything</string>
+    <string name="notif_silence_desc">Every notice goes out on a silent channel: no sound, no vibration.</string>
+    <string name="notif_row_service_off_title">Service turned off</string>
+    <string name="notif_row_service_off_desc">When a sensitive app opens and the service switches itself off.</string>
+    <string name="notif_row_closed_title">Sensitive app closed</string>
+    <string name="notif_row_closed_desc">Reminder to turn Video Boost back on once you are done.</string>
+    <string name="notif_row_reenabled_title">Video Boost is back on</string>
+    <string name="notif_row_reenabled_desc">Confirmation after it re-enables itself.</string>
+    <string name="notif_row_activated_title">Video Boost activated</string>
+    <string name="notif_row_activated_desc">Silent confirmation every time it flips the toggle inside the Camera. Off by default.</string>
+    <string name="notif_row_paused_title">Paused for a sensitive app</string>
+    <string name="notif_row_paused_desc">Shown while the monitor waits for the sensitive app to close.</string>
+    <string name="notif_row_countdown_title">Countdown before re-enabling</string>
+    <string name="notif_row_countdown_desc">The interactive notice with “Wait” and “Turn on now”.</string>
+    <string name="notif_row_watch_title">On-demand watcher</string>
+    <string name="notif_row_watch_desc">Shown while the app waits for the Camera to open.</string>
+    <string name="notif_required_note">Android requires this one while the service runs.</string>
+    <string name="notif_channel_action">Sound and importance</string>
+    <string name="notif_open_all">All notification settings</string>
+
+    <!-- On-demand watcher notification -->
+    <string name="notif_channel_watch_name">On-demand watcher</string>
+    <string name="notif_channel_watch_desc">Silent notice while the app waits for the Camera to open.</string>
+    <string name="notif_watch_title">Waiting for the Camera</string>
+    <string name="notif_watch_text">Video Boost switches its accessibility service on only while the Camera is open.</string>
+    <!-- Optional activation confirmation -->
+    <string name="notif_channel_activated_name">Video Boost activated</string>
+    <string name="notif_channel_activated_desc">Optional confirmation once Video Boost is on in the Camera.</string>
+    <string name="notif_activated_title">Video Boost is on</string>
+    <string name="notif_activated_text">Turned on for this Camera session.</string>
+
+    <!-- Main-screen navigation -->
+    <string name="settings_section">Settings</string>
+    <string name="nav_sensitive_sub">Auto-off around banks, reminders and full-auto</string>
+    <string name="nav_sensitive_sub_ondemand">Nothing to do in on-demand mode</string>
+    <string name="nav_notifications_sub">Choose which alerts you get</string>
+    <string name="nav_advanced_title">Wireless ADB (advanced)</string>
+    <string name="setup_adb_row_title">Or enable it with wireless ADB</string>
+    <string name="mode_open_advanced">Open wireless ADB setup</string>
+    <string name="hero_fix_mode">Review activation mode</string>
+
+    <!-- Support & about -->
+    <string name="support_title">Free &amp; open source</string>
+    <string name="support_body">No ads, no tracking, no accounts. If this app saves your videos, you can support its development — it helps keep it working after every Pixel Camera update.</string>
+    <string name="nav_about_title">About, privacy &amp; source code</string>
+    <string name="nav_about_sub">What it does exactly, every permission explained</string>
+    <string name="about_what_title">What this app does, exactly</string>
+    <string name="about_what_body">It watches for Pixel Camera in video mode. When it appears, it opens the Video Settings panel, reads the real state of the Video Boost toggle, turns it on only if it is off, and closes the panel — about half a second. That is all. It only reads and taps controls inside Pixel Camera; events from other apps are used solely to notice that the Camera left the screen or that a sensitive app opened, and are discarded on the spot.</string>
+    <string name="about_never_title">What it never does</string>
+    <string name="about_never_body">It never reads or stores what is on your screen, never collects data, and has no analytics, no ads and no accounts. Nothing leaves your phone: the only network use is checking GitHub for new versions (and, if you enable it, the wireless-ADB connection to your own phone over localhost).</string>
+    <string name="about_open_title">Open source (MIT)</string>
+    <string name="about_open_body">The complete source code is public. Anyone can read it, audit it or build the APK themselves — you do not have to take anyone\'s word for any of this.</string>
+    <string name="btn_view_source">View the source code on GitHub</string>
+    <string name="about_perms_title">Every permission, explained</string>
+    <string name="perm_a11y_title">Accessibility service</string>
+    <string name="perm_a11y_body">The only way to flip a switch inside another app without root. Android warns about it because a malicious app could abuse it; here it only touches Pixel Camera, and the code is open so you can verify that.</string>
+    <string name="perm_internet_title">Internet</string>
+    <string name="perm_internet_body">Used for exactly one thing: asking GitHub whether there is a newer version. No other traffic, ever.</string>
+    <string name="perm_notif_title">Notifications</string>
+    <string name="perm_notif_body">The reminders and confirmations you control in the Notifications screen. Every optional one can be switched off.</string>
+    <string name="perm_fgs_title">Foreground service</string>
+    <string name="perm_fgs_body">What Android requires while the app waits for a sensitive app to close or for the Camera to open (on-demand mode). Its notification is required by the system; it can be silenced.</string>
+    <string name="perm_usage_title">Usage access (optional)</string>
+    <string name="perm_usage_body">Only if you enable full-auto or on-demand mode: lets the app see which app is in the foreground, locally, so it knows when the Camera opens or a sensitive app closes. Nothing is recorded anywhere.</string>
+    <string name="perm_secure_title">WRITE_SECURE_SETTINGS (optional)</string>
+    <string name="perm_secure_body">Granted only by you, through wireless ADB or Shizuku: lets the app switch its own accessibility service on and off — the same command you would type over ADB, nothing else.</string>
+    <string name="about_play_title">Why it is not on the Play Store</string>
+    <string name="about_play_body">Play\'s policy forbids using accessibility to automate another app, which is this app\'s whole purpose. That is also why Play Protect warns when you install the APK: it flags every sideloaded accessibility app, and it does not mean something is wrong. Distribution is through GitHub Releases and Obtainium instead.</string>
+    <string name="about_version">Version %1$s</string>
+
     <!-- Pro-only -->
     <string name="pro_note">Works on Pixel Pro models with Video Boost (Pixel 8 Pro and newer Pro models).</string>
 </resources>

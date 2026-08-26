@@ -55,6 +55,12 @@ class VideoBoostService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        // En modo bajo demanda, quien nos encendió fue el vigilante y ya está
+        // vivo; salvo que el teléfono se haya reiniciado con la cámara abierta,
+        // que nos revive a nosotros sin él. Arrancarlo desde acá cubre ese caso
+        // y aprovecha la exención de background que da el servicio de
+        // accesibilidad activo (mismo motivo que [BankWatchService.start]).
+        CameraWatchService.sync(this)
         // Si volvió a habilitarse, ya no está "apagado por el banco".
         Prefs.setDisabledByBank(this, false)
         Notifications.cancel(this)
@@ -94,8 +100,17 @@ class VideoBoostService : AccessibilityService() {
             SensitiveApps.isSensitive(this, pkg)
         ) {
             Log.i(TAG, "App sensible en primer plano ($pkg); deshabilitando el servicio")
-            Prefs.setDisabledByBank(this, true)
             val label = appLabel(pkg)
+            if (Capabilities.onDemandMode(this)) {
+                // Bajo demanda no hay nada que recordar ni que monitorear: el
+                // servicio solo vive dentro de la cámara y [CameraWatchService]
+                // lo volverá a encender la próxima vez que se abra. Ni marca de
+                // "apagado por el banco" (la UI no debe pedir nada), ni
+                // notificación, ni foreground service de vigilancia.
+                disableSelf()
+                return
+            }
+            Prefs.setDisabledByBank(this, true)
             if (Capabilities.canMonitorClose(this)) {
                 // Notificación silenciosa + monitor que detecta el cierre (y, con
                 // Shizuku, re-activa solo). Arrancar el FGS ANTES de disableSelf()
@@ -244,6 +259,9 @@ class VideoBoostService : AccessibilityService() {
             return
         }
         Log.i(TAG, "Video Boost activado y verificado")
+        // Confirmación opcional (apagada por defecto). Va acá y no en el camino
+        // de "ya estaba activo": avisar de algo que no hicimos sería ruido.
+        Notifications.showActivated(this)
         finishSession()
     }
 

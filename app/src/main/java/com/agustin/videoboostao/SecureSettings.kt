@@ -59,6 +59,42 @@ object SecureSettings {
     fun enableOwnAccessibilityService(context: Context): Boolean =
         enableAccessibilityService(context, ownComponent(context))
 
+    /**
+     * Contraparte de [enableAccessibilityService]: saca [component] de la lista
+     * de servicios activos. Es lo que apaga el servicio en el modo bajo demanda
+     * cuando la cámara deja el primer plano ([CameraWatchService]).
+     *
+     * `accessibility_enabled` solo se pone a 0 si la lista queda VACÍA: apagarlo
+     * con otros servicios dentro (TalkBack, Live Caption, un mando...) los
+     * dejaría inertes, y este permiso no es para romperle la accesibilidad a
+     * nadie. Verificación por efecto, igual que al encender.
+     */
+    fun disableAccessibilityService(context: Context, component: String): Boolean = try {
+        val cr = context.contentResolver
+        val current = Settings.Secure.getString(
+            cr,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ).orEmpty()
+        val rest = current.split(':')
+            .filter { it.isNotBlank() && !it.equals(component, ignoreCase = true) }
+        Settings.Secure.putString(
+            cr,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+            rest.joinToString(":"),
+        )
+        if (rest.isEmpty()) {
+            Settings.Secure.putInt(cr, Settings.Secure.ACCESSIBILITY_ENABLED, 0)
+        }
+        !Capabilities.accessibilityServiceEnabled(context, component)
+    } catch (e: Exception) {
+        Log.d(TAG, "Apagado local no disponible: ${e.javaClass.simpleName}")
+        false
+    }
+
+    /** Igual que [disableAccessibilityService] para el componente propio. */
+    fun disableOwnAccessibilityService(context: Context): Boolean =
+        disableAccessibilityService(context, ownComponent(context))
+
     fun ownComponent(context: Context): String =
         ComponentName(context, VideoBoostService::class.java).flattenToString()
 

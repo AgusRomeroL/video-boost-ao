@@ -166,6 +166,106 @@
     <string name="update_available">Actualización disponible: v%1$s</string>
     <string name="btn_download_update">Descargar actualización</string>
 
+    <!-- Modo de activación -->
+    <string name="mode_card_title">Cómo se activa</string>
+    <string name="mode_card_body">Dos formas de funcionar. Siempre activo anda en cualquier teléfono; bajo demanda mantiene el servicio de accesibilidad apagado salvo mientras la Cámara está abierta, y necesita los permisos especiales de ADB.</string>
+    <string name="mode_always_title">Siempre activo</string>
+    <string name="mode_always_body">El servicio de accesibilidad queda encendido y filtra los eventos por código. No pide permisos especiales, pero las apps sensibles lo obligan a apagarse solo.</string>
+    <string name="mode_ondemand_title">Solo al abrir la Cámara</string>
+    <string name="mode_ondemand_body">El servicio está apagado y se enciende solo en cuanto Pixel Camera pasa al frente; al salir se vuelve a apagar. Ningún banco lo ve nunca corriendo, así que no hay nada que apagar por ellos.</string>
+    <string name="mode_ondemand_locked">Necesita dos permisos especiales: “Acceso de uso” para detectar que la Cámara se abre, y escritura local para encender y apagar su propio servicio. Emparejá el ADB inalámbrico (o Shizuku) desde la pantalla de ADB inalámbrico y la app se los concede sola, una sola vez.</string>
+    <string name="mode_ondemand_ready">Listo: acceso de uso y escritura local concedidos.</string>
+    <string name="mode_ondemand_missing_usage">Falta el “Acceso de uso”.</string>
+    <string name="mode_ondemand_missing_secure">Falta la escritura local (WRITE_SECURE_SETTINGS).</string>
+    <string name="mode_grant_now">Conceder los permisos ahora</string>
+    <string name="mode_granting">Concediendo…</string>
+    <string name="mode_grant_failed">No se pudieron conceder. Encendé la “Depuración inalámbrica” y emparejá el dispositivo en la pantalla de ADB inalámbrico, después probá de nuevo.</string>
+    <string name="mode_linger_title">Seguir encendido al salir de la Cámara</string>
+    <string name="mode_linger_value">%1$d s</string>
+    <string name="mode_linger_immediate">Al instante</string>
+    <string name="mode_linger_hint">Gracia para que salir un momento a la galería y volver no apague y encienda el servicio. Si aparece una app sensible, la gracia se corta y se apaga al toque.</string>
+
+    <!-- Estado del modo bajo demanda -->
+    <string name="status_ondemand_title">Bajo demanda</string>
+    <string name="status_ondemand_body">El servicio está apagado ahora mismo. Se enciende solo mientras la Cámara está abierta y se apaga al salir.</string>
+    <string name="status_ondemand_setup_body">El modo bajo demanda necesita los permisos especiales de ADB. Concedelos en “Cómo se activa”, o volvé a siempre activo.</string>
+    <string name="bank_not_needed_title">Apps sensibles: nada que hacer</string>
+    <string name="bank_not_needed_body">En modo bajo demanda el servicio solo existe dentro de la Cámara, así que ningún banco convive con él. Esta sección vuelve si cambiás a siempre activo.</string>
+
+    <!-- Control de notificaciones -->
+    <string name="btn_notifications">Notificaciones</string>
+    <string name="notif_screen_title">Notificaciones</string>
+    <string name="notif_screen_hint">Apagá las que no quieras. Las que Android exige mientras un servicio corre se pueden silenciar, no ocultar.</string>
+    <string name="notif_silence_title">Silenciar todo</string>
+    <string name="notif_silence_desc">Todos los avisos salen por un canal silencioso: sin sonido ni vibración.</string>
+    <string name="notif_row_service_off_title">Servicio apagado</string>
+    <string name="notif_row_service_off_desc">Cuando se abre una app sensible y el servicio se apaga solo.</string>
+    <string name="notif_row_closed_title">App sensible cerrada</string>
+    <string name="notif_row_closed_desc">Recordatorio para reactivar Video Boost cuando terminás.</string>
+    <string name="notif_row_reenabled_title">Video Boost volvió</string>
+    <string name="notif_row_reenabled_desc">Confirmación después de que se reactiva solo.</string>
+    <string name="notif_row_activated_title">Video Boost activado</string>
+    <string name="notif_row_activated_desc">Confirmación silenciosa cada vez que activa el control dentro de la Cámara. Apagada por defecto.</string>
+    <string name="notif_row_paused_title">En pausa por una app sensible</string>
+    <string name="notif_row_paused_desc">Se muestra mientras el monitor espera que la app sensible se cierre.</string>
+    <string name="notif_row_countdown_title">Cuenta atrás antes de reactivar</string>
+    <string name="notif_row_countdown_desc">El aviso interactivo con “Esperar” y “Activar ya”.</string>
+    <string name="notif_row_watch_title">Vigilante del modo bajo demanda</string>
+    <string name="notif_row_watch_desc">Se muestra mientras la app espera que se abra la Cámara.</string>
+    <string name="notif_required_note">Android la exige mientras el servicio corre.</string>
+    <string name="notif_channel_action">Sonido e importancia</string>
+    <string name="notif_open_all">Todos los ajustes de notificaciones</string>
+
+    <!-- Notificación del vigilante -->
+    <string name="notif_channel_watch_name">Vigilante del modo bajo demanda</string>
+    <string name="notif_channel_watch_desc">Aviso silencioso mientras la app espera que se abra la Cámara.</string>
+    <string name="notif_watch_title">Esperando la Cámara</string>
+    <string name="notif_watch_text">Video Boost enciende su servicio de accesibilidad solo mientras la Cámara está abierta.</string>
+    <!-- Confirmación opcional de activación -->
+    <string name="notif_channel_activated_name">Video Boost activado</string>
+    <string name="notif_channel_activated_desc">Confirmación opcional cuando Video Boost queda activo en la Cámara.</string>
+    <string name="notif_activated_title">Video Boost está activo</string>
+    <string name="notif_activated_text">Se activó para esta sesión de cámara.</string>
+
+    <!-- Navegación de la pantalla principal -->
+    <string name="settings_section">Ajustes</string>
+    <string name="nav_sensitive_sub">Apagado automático con bancos, recordatorios y full-auto</string>
+    <string name="nav_sensitive_sub_ondemand">Nada que hacer en modo bajo demanda</string>
+    <string name="nav_notifications_sub">Elegí qué avisos recibir</string>
+    <string name="nav_advanced_title">ADB inalámbrico (avanzado)</string>
+    <string name="setup_adb_row_title">O activalo con ADB inalámbrico</string>
+    <string name="mode_open_advanced">Abrir configuración de ADB inalámbrico</string>
+    <string name="hero_fix_mode">Revisar el modo de activación</string>
+
+    <!-- Apoyo y acerca de -->
+    <string name="support_title">Gratis y de código abierto</string>
+    <string name="support_body">Sin anuncios, sin rastreo, sin cuentas. Si esta app te salva los videos, podés apoyar su desarrollo: ayuda a mantenerla funcionando después de cada actualización de Pixel Camera.</string>
+    <string name="nav_about_title">Acerca de, privacidad y código fuente</string>
+    <string name="nav_about_sub">Qué hace exactamente, cada permiso explicado</string>
+    <string name="about_what_title">Qué hace esta app, exactamente</string>
+    <string name="about_what_body">Vigila que Pixel Camera esté en modo video. Cuando aparece, abre el panel de Ajustes de video, lee el estado real del control de Video Boost, lo enciende solo si está apagado y cierra el panel: medio segundo. Eso es todo. Solo lee y toca controles dentro de Pixel Camera; los eventos de otras apps se usan únicamente para notar que la Cámara salió de pantalla o que se abrió una app sensible, y se descartan al instante.</string>
+    <string name="about_never_title">Qué no hace nunca</string>
+    <string name="about_never_body">Nunca lee ni guarda lo que hay en tu pantalla, no recolecta datos y no tiene analíticas, anuncios ni cuentas. Nada sale de tu teléfono: el único uso de red es consultar GitHub por versiones nuevas (y, si lo activás, la conexión ADB inalámbrica a tu propio teléfono por localhost).</string>
+    <string name="about_open_title">Código abierto (MIT)</string>
+    <string name="about_open_body">El código fuente completo es público. Cualquiera puede leerlo, auditarlo o compilar el APK por su cuenta: no hace falta creerle a nadie nada de esto.</string>
+    <string name="btn_view_source">Ver el código fuente en GitHub</string>
+    <string name="about_perms_title">Cada permiso, explicado</string>
+    <string name="perm_a11y_title">Servicio de accesibilidad</string>
+    <string name="perm_a11y_body">La única forma de tocar un control dentro de otra app sin root. Android advierte sobre él porque una app maliciosa podría abusarlo; acá solo toca Pixel Camera, y el código es abierto para que puedas verificarlo.</string>
+    <string name="perm_internet_title">Internet</string>
+    <string name="perm_internet_body">Se usa para exactamente una cosa: preguntarle a GitHub si hay una versión más nueva. Ningún otro tráfico, nunca.</string>
+    <string name="perm_notif_title">Notificaciones</string>
+    <string name="perm_notif_body">Los recordatorios y confirmaciones que controlás en la pantalla de Notificaciones. Todas las opcionales se pueden apagar.</string>
+    <string name="perm_fgs_title">Servicio en primer plano</string>
+    <string name="perm_fgs_body">Lo que Android exige mientras la app espera que se cierre una app sensible o que se abra la Cámara (modo bajo demanda). Su notificación la exige el sistema; se puede silenciar.</string>
+    <string name="perm_usage_title">Acceso de uso (opcional)</string>
+    <string name="perm_usage_body">Solo si activás el full-auto o el modo bajo demanda: le deja ver qué app está en primer plano, localmente, para saber cuándo se abre la Cámara o se cierra una app sensible. No se registra nada en ningún lado.</string>
+    <string name="perm_secure_title">WRITE_SECURE_SETTINGS (opcional)</string>
+    <string name="perm_secure_body">Lo concedés solo vos, por ADB inalámbrico o Shizuku: le permite encender y apagar su propio servicio de accesibilidad — el mismo comando que escribirías por ADB, nada más.</string>
+    <string name="about_play_title">Por qué no está en la Play Store</string>
+    <string name="about_play_body">La política de Play prohíbe usar accesibilidad para automatizar otra app, que es justamente el propósito de esta. Por eso mismo Play Protect advierte al instalar el APK: marca a toda app de accesibilidad instalada por fuera, y no significa que algo esté mal. La distribución es por GitHub Releases y Obtainium.</string>
+    <string name="about_version">Versión %1$s</string>
+
     <!-- Pro-only -->
     <string name="pro_note">Funciona en modelos Pixel Pro con Video Boost (Pixel 8 Pro y modelos Pro posteriores).</string>
 </resources>

@@ -1,8 +1,6 @@
 package com.agustin.videoboostao
 
 import android.app.Service
-import android.app.usage.UsageEvents
-import android.app.usage.UsageStatsManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -277,7 +275,7 @@ class BankWatchService : Service() {
         }
         if (Capabilities.hasUsageAccess(this)) {
             // Vía normal: lectura local e instantánea, sin tocar ADB.
-            if (!processForeground(foregroundViaUsageStats())) scheduleNext()
+            if (!processForeground(ForegroundApp.current(this))) scheduleNext()
             return
         }
         if (mechanism == Capabilities.Mechanism.ADB) {
@@ -366,7 +364,7 @@ class BankWatchService : Service() {
         }
         val local = Capabilities.hasUsageAccess(this)
         if (local) {
-            val fg = foregroundViaUsageStats()
+            val fg = ForegroundApp.current(this)
             when {
                 fg == null -> Unit
                 fg == Selectors.CAMERA_PACKAGE -> {
@@ -402,7 +400,7 @@ class BankWatchService : Service() {
      */
     private fun readForegroundBlocking(): String? {
         if (Capabilities.hasUsageAccess(this)) {
-            foregroundViaUsageStats()?.let { return it }
+            ForegroundApp.current(this)?.let { return it }
         }
         shell?.let { s ->
             try {
@@ -444,23 +442,6 @@ class BankWatchService : Service() {
                 Log.i(TAG, "BankWatch: WRITE_SECURE_SETTINGS concedido; reactivación local")
             }
         }
-    }
-
-    private fun foregroundViaUsageStats(): String? {
-        val usm = getSystemService(UsageStatsManager::class.java) ?: return null
-        val now = System.currentTimeMillis()
-        val events = usm.queryEvents(now - 10_000, now)
-        val e = UsageEvents.Event()
-        var last: String? = null
-        while (events.hasNextEvent()) {
-            events.getNextEvent(e)
-            if (e.eventType == UsageEvents.Event.ACTIVITY_RESUMED ||
-                e.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND
-            ) {
-                last = e.packageName
-            }
-        }
-        return last
     }
 
     // --- Cierre de la app sensible: espera de gracia y reactivación ---

@@ -75,6 +75,41 @@ object Capabilities {
         fullAutoReady(context) || hasUsageAccess(context)
 
     /**
+     * ¿Se sostiene el modo bajo demanda? Hacen falta las DOS mitades y son
+     * justo los permisos especiales que la app se auto-concede por ADB/Shizuku:
+     * leer el primer plano para saber que la cámara se abrió ("Acceso de uso") y
+     * encender/apagar el propio servicio de accesibilidad
+     * (`WRITE_SECURE_SETTINGS`).
+     *
+     * A diferencia del full-auto, acá NO valen Shizuku ni ADB como sustitutos en
+     * caliente: el modo enciende y apaga varias veces al día, y hacerlo abriendo
+     * una conexión ADB cada vez reintroduciría la notificación de "Depuración
+     * inalámbrica" del sistema en cada sesión de cámara. Shizuku y ADB sirven
+     * para CONCEDER los permisos una vez (ver [InitialEnable]), no para operar.
+     */
+    fun canRunOnDemand(context: Context): Boolean =
+        hasUsageAccess(context) && canWriteSecureSettings(context)
+
+    /**
+     * Modo REALMENTE en vigor. Si el usuario eligió bajo demanda y después perdió
+     * un permiso (lo revocó a mano, reinstaló...), esto degrada a
+     * [ActivationMode.ALWAYS] y la app vuelve al comportamiento de siempre en vez
+     * de quedarse sin activar nada. La preferencia guardada no se toca: si el
+     * permiso vuelve, el modo vuelve.
+     */
+    fun activationMode(context: Context): ActivationMode =
+        if (Prefs.activationMode(context) == ActivationMode.ON_DEMAND &&
+            canRunOnDemand(context)
+        ) {
+            ActivationMode.ON_DEMAND
+        } else {
+            ActivationMode.ALWAYS
+        }
+
+    fun onDemandMode(context: Context): Boolean =
+        activationMode(context) == ActivationMode.ON_DEMAND
+
+    /**
      * ¿[component] está en la lista de servicios de accesibilidad activos?
      *
      * Lectura LOCAL: escribir secure settings necesita privilegios, pero leerlos

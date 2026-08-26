@@ -23,22 +23,38 @@ import androidx.core.app.RemoteInput
  * - [CHANNEL_PAUSED] (mínima, silenciosa): "en pausa" mientras la app sensible
  *   está abierta; es a la vez la notificación del foreground service
  *   [BankWatchService].
+ * - [CHANNEL_WATCH] (mínima, silenciosa): el vigilante del modo bajo demanda
+ *   ([CameraWatchService]). Canal propio y no [CHANNEL_PAUSED] porque son cosas
+ *   distintas y el usuario tiene que poder silenciar u ocultar una sin la otra.
+ * - [CHANNEL_ACTIVATED] (baja, silenciosa): la confirmación opcional de que
+ *   Video Boost quedó activado.
  * - [CHANNEL_ADB_PAIRING] (alta): el emparejamiento ADB.
  *
  * Los canales son inmutables una vez creados, así que cambiar la importancia de
- * un aviso se hace moviéndolo a otro canal, nunca editando el suyo.
+ * un aviso se hace moviéndolo a otro canal, nunca editando el suyo. Eso es lo
+ * que implementa el maestro de silencio ([Prefs.silenceAllNotifs]): no toca
+ * ningún canal, elige otro al postear.
+ *
+ * Los avisos OPCIONALES consultan su preferencia y no se postean si está
+ * apagada. Los de foreground service (pausa, cuenta atrás, vigilante) los exige
+ * Android mientras el servicio corre: se pueden silenciar, no suprimir; para
+ * eso la UI ofrece [channelSettingsIntent].
  */
 object Notifications {
 
-    private const val CHANNEL_ALERT = "reenable_reminder"
-    private const val CHANNEL_REMINDER_SILENT = "reenable_silent"
-    private const val CHANNEL_PAUSED = "bank_paused"
-    private const val CHANNEL_ADB_PAIRING = "adb_pairing"
+    const val CHANNEL_ALERT = "reenable_reminder"
+    const val CHANNEL_REMINDER_SILENT = "reenable_silent"
+    const val CHANNEL_PAUSED = "bank_paused"
+    const val CHANNEL_ADB_PAIRING = "adb_pairing"
+    const val CHANNEL_WATCH = "ondemand_watch"
+    const val CHANNEL_ACTIVATED = "boost_activated"
 
     private const val NOTIF_ID_ALERT = 1001
     const val NOTIF_ID_PAUSED = 1002
     const val NOTIF_ID_ADB_PAIRING = 1004
     private const val NOTIF_ID_ADB_PAIRING_DONE = 1005
+    const val NOTIF_ID_WATCH = 1007
+    private const val NOTIF_ID_ACTIVATED = 1008
 
     /**
      * Ciclo "la app sensible se cerró": cuenta atrás -> "Video Boost volvió".
@@ -50,7 +66,12 @@ object Notifications {
      */
     const val NOTIF_ID_REENABLE = 1006
 
-    private fun ensureChannels(context: Context) {
+    /**
+     * Crea los canales que falten. Pública porque la UI necesita que el canal
+     * exista ANTES de abrir sus ajustes: [channelSettingsIntent] contra un canal
+     * inexistente aterriza en una pantalla vacía.
+     */
+    fun ensureChannels(context: Context) {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
         if (nm.getNotificationChannel(CHANNEL_ALERT) == null) {
             nm.createNotificationChannel(
@@ -82,6 +103,32 @@ object Notifications {
                     NotificationManager.IMPORTANCE_MIN,
                 ).apply {
                     description = context.getString(R.string.notif_channel_paused_desc)
+                    setSound(null, null)
+                    enableVibration(false)
+                },
+            )
+        }
+        if (nm.getNotificationChannel(CHANNEL_WATCH) == null) {
+            nm.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_WATCH,
+                    context.getString(R.string.notif_channel_watch_name),
+                    NotificationManager.IMPORTANCE_MIN,
+                ).apply {
+                    description = context.getString(R.string.notif_channel_watch_desc)
+                    setSound(null, null)
+                    enableVibration(false)
+                },
+            )
+        }
+        if (nm.getNotificationChannel(CHANNEL_ACTIVATED) == null) {
+            nm.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ACTIVATED,
+                    context.getString(R.string.notif_channel_activated_name),
+                    NotificationManager.IMPORTANCE_LOW,
+                ).apply {
+                    description = context.getString(R.string.notif_channel_activated_desc)
                     setSound(null, null)
                     enableVibration(false)
                 },
@@ -132,6 +179,7 @@ object Notifications {
 
     /** Aviso normal al detectar que la app sensible se cerró (re-activar a mano). */
     fun showClosedReminder(context: Context, appLabel: String?) {
+        if (!Prefs.notifClosed(context)) return
         ensureChannels(context)
         val text = if (!appLabel.isNullOrBlank()) {
             context.getString(R.string.notif_closed_text_named, appLabel)
@@ -166,7 +214,7 @@ object Notifications {
         } else {
             context.getString(R.string.notif_countdown_text, delayMin)
         }
-        val builder = NotificationCompat.Builder(context, CHANNEL_ALERT)
+        val builder = NotificationCompat.Builder(context, quiet(context, CHANNEL_ALERT))
             .setSmallIcon(R.drawable.ic_stat_videoboost)
             .setContentTitle(context.getString(R.string.notif_countdown_title))
             .setContentText(text)
@@ -221,6 +269,12 @@ object Notifications {
      * cierre.
      */
     fun showReenabled(context: Context) {
+        if (!Prefs.notifReenabled(context)) {
+            // Sin aviso final, la cuenta atrás (mismo id) se quedaría colgada
+            // contando hacia atrás para siempre: hay que retirarla.
+            cancelReenable(context)
+            return
+        }
         ensureChannels(context)
         val text = context.getString(R.string.notif_reenabled_text)
         notify(
@@ -237,6 +291,7 @@ object Notifications {
      * está entrando al banco.
      */
     fun showReenableReminder(context: Context, appLabel: String?) {
+        if (!Prefs.notifServiceOff(context)) return
         ensureChannels(context)
         val text = if (!appLabel.isNullOrBlank()) {
             context.getString(R.string.notif_text_named, appLabel)
@@ -256,8 +311,9 @@ object Notifications {
         text: String,
         channelId: String = CHANNEL_ALERT,
         onlyAlertOnce: Boolean = false,
-    ): Notification =
-        NotificationCompat.Builder(context, channelId)
+    ): Notification {
+        val channel = quiet(context, channelId)
+        return NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_stat_videoboost)
             .setContentTitle(context.getString(titleRes))
             .setContentText(text)
@@ -265,9 +321,22 @@ object Notifications {
             .setAutoCancel(true)
             .setOnlyAlertOnce(onlyAlertOnce)
             // Paridad con el canal para quien tenga los canales ya creados.
-            .setSilent(channelId == CHANNEL_REMINDER_SILENT)
+            .setSilent(channel != CHANNEL_ALERT)
             .setContentIntent(openAppIntent(context))
             .build()
+    }
+
+    /**
+     * Canal efectivo con el maestro de silencio puesto: lo que sonaría pasa al
+     * canal silencioso. Se elige canal en vez de editar el existente porque los
+     * canales son inmutables; y no se toca lo que ya es silencioso.
+     */
+    private fun quiet(context: Context, channelId: String): String =
+        if (channelId == CHANNEL_ALERT && Prefs.silenceAllNotifs(context)) {
+            CHANNEL_REMINDER_SILENT
+        } else {
+            channelId
+        }
 
     /** Acción de la cuenta atrás. Va al propio [BankWatchService], que ya está
      *  en primer plano: `getForegroundService` es el mismo patrón que usa el
@@ -395,6 +464,78 @@ object Notifications {
             .setContentIntent(openAppIntent(context))
             .build()
         notify(context, NOTIF_ID_ADB_PAIRING_DONE, notif)
+    }
+
+    // --- Modo bajo demanda ---
+
+    /**
+     * Notificación del foreground service que vigila la apertura de la cámara
+     * ([CameraWatchService]). Importancia mínima: sin sonido y sin icono en la
+     * barra de estado, que es lo más discreto que Android permite para un
+     * servicio en primer plano (ocultarla del todo no se puede).
+     */
+    fun buildWatchOngoing(context: Context): Notification {
+        ensureChannels(context)
+        val text = context.getString(R.string.notif_watch_text)
+        return NotificationCompat.Builder(context, CHANNEL_WATCH)
+            .setSmallIcon(R.drawable.ic_stat_videoboost)
+            .setContentTitle(context.getString(R.string.notif_watch_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setOngoing(true)
+            .setSilent(true)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setContentIntent(openAppIntent(context))
+            .build()
+    }
+
+    /**
+     * Confirmación opcional de que Video Boost quedó activado en esta sesión de
+     * cámara ([Prefs.notifActivated], apagada por defecto). `autoCancel` + canal
+     * silencioso: se descarta al tocarla y nunca suena, porque llega justo
+     * cuando el usuario está por grabar.
+     */
+    fun showActivated(context: Context) {
+        if (!Prefs.notifActivated(context)) return
+        ensureChannels(context)
+        val text = context.getString(R.string.notif_activated_text)
+        notify(
+            context,
+            NOTIF_ID_ACTIVATED,
+            alert(
+                context,
+                R.string.notif_activated_title,
+                text,
+                channelId = CHANNEL_ACTIVATED,
+                onlyAlertOnce = true,
+            ),
+        )
+    }
+
+    fun cancelActivated(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIF_ID_ACTIVATED)
+    }
+
+    /**
+     * Ajustes del sistema para un canal concreto (sonido, vibración, burbuja,
+     * importancia). Es el único sitio donde se pueden cambiar esas cosas: los
+     * canales son inmutables desde código una vez creados, así que la app ofrece
+     * el atajo en vez de fingir que las controla.
+     */
+    fun channelSettingsIntent(context: Context, channelId: String): Intent {
+        ensureChannels(context)
+        return Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+            .putExtra(android.provider.Settings.EXTRA_CHANNEL_ID, channelId)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    /** Ajustes de notificaciones de la app entera (todos los canales). */
+    fun appSettingsIntent(context: Context): Intent {
+        ensureChannels(context)
+        return Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
     private fun notify(context: Context, id: Int, notif: Notification) {

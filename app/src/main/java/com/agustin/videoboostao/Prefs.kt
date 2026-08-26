@@ -22,9 +22,20 @@ object Prefs {
     private const val KEY_USAGE_SELF_GRANTED = "usage_access_self_granted"
     private const val KEY_SECURE_SELF_GRANTED = "secure_settings_self_granted"
     private const val KEY_REENABLE_DELAY_MIN = "reenable_delay_min"
+    private const val KEY_ACTIVATION_MODE = "activation_mode"
+    private const val KEY_ONDEMAND_LINGER_SEC = "ondemand_linger_sec"
+    private const val KEY_NOTIF_SERVICE_OFF = "notif_service_off"
+    private const val KEY_NOTIF_CLOSED = "notif_closed"
+    private const val KEY_NOTIF_REENABLED = "notif_reenabled"
+    private const val KEY_NOTIF_ACTIVATED = "notif_activated"
+    private const val KEY_NOTIF_SILENCE_ALL = "notif_silence_all"
 
     /** Tope del deslizador de la UI y del acumulado de esperas. */
     const val MAX_REENABLE_DELAY_MIN = 10
+
+    /** Gracia por defecto y tope del deslizador del modo bajo demanda. */
+    const val DEFAULT_LINGER_SEC = 15
+    const val MAX_LINGER_SEC = 60
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -153,4 +164,105 @@ object Prefs {
             .putInt(KEY_REENABLE_DELAY_MIN, minutes.coerceIn(0, MAX_REENABLE_DELAY_MIN))
             .apply()
     }
+
+    // --- Modo de activación ---
+
+    /**
+     * Modo guardado, sin comprobar si el dispositivo puede sostenerlo. Para
+     * decidir comportamiento usar [Capabilities.onDemandMode], que degrada a
+     * [ActivationMode.ALWAYS] si faltan los permisos especiales.
+     */
+    fun activationMode(context: Context): ActivationMode =
+        if (prefs(context).getString(KEY_ACTIVATION_MODE, null) == MODE_ON_DEMAND) {
+            ActivationMode.ON_DEMAND
+        } else {
+            ActivationMode.ALWAYS
+        }
+
+    fun setActivationMode(context: Context, mode: ActivationMode) {
+        val value = if (mode == ActivationMode.ON_DEMAND) MODE_ON_DEMAND else MODE_ALWAYS
+        prefs(context).edit().putString(KEY_ACTIVATION_MODE, value).apply()
+    }
+
+    /**
+     * Segundos que el servicio de accesibilidad sigue encendido tras salir de la
+     * cámara (0 = apagar en cuanto se confirma la salida).
+     *
+     * Existe porque salir un momento a la galería a revisar la toma y volver es
+     * lo normal: apagar y encender en cada ida y vuelta hace que la cámara se
+     * encuentre un servicio recién activado. Una app sensible en primer plano
+     * corta la gracia y apaga al instante (ver [CameraWatchService]).
+     */
+    fun onDemandLingerSec(context: Context): Int =
+        prefs(context).getInt(KEY_ONDEMAND_LINGER_SEC, DEFAULT_LINGER_SEC)
+
+    fun setOnDemandLingerSec(context: Context, seconds: Int) {
+        prefs(context).edit()
+            .putInt(KEY_ONDEMAND_LINGER_SEC, seconds.coerceIn(0, MAX_LINGER_SEC))
+            .apply()
+    }
+
+    // --- Notificaciones ---
+    //
+    // Solo gobiernan los avisos OPCIONALES. Las notificaciones de foreground
+    // service (pausa, cuenta atrás, vigilante) las exige Android y no se pueden
+    // suprimir: para esas, [silenceAllNotifs] baja el sonido y la UI ofrece el
+    // atajo al canal del sistema.
+
+    /** Aviso de que el servicio se apagó al abrirse una app sensible. */
+    fun notifServiceOff(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_NOTIF_SERVICE_OFF, true)
+
+    fun setNotifServiceOff(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_NOTIF_SERVICE_OFF, value).apply()
+    }
+
+    /** Aviso de "la app sensible se cerró, reactiva a mano". */
+    fun notifClosed(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_NOTIF_CLOSED, true)
+
+    fun setNotifClosed(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_NOTIF_CLOSED, value).apply()
+    }
+
+    /** Aviso de "Video Boost volvió" tras una reactivación automática. */
+    fun notifReenabled(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_NOTIF_REENABLED, true)
+
+    fun setNotifReenabled(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_NOTIF_REENABLED, value).apply()
+    }
+
+    /** Confirmación de que Video Boost quedó activado en la cámara. Apagada por
+     *  defecto: es una notificación por sesión de cámara y la mayoría no la
+     *  quiere; sirve sobre todo para comprobar el modo bajo demanda. */
+    fun notifActivated(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_NOTIF_ACTIVATED, false)
+
+    fun setNotifActivated(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_NOTIF_ACTIVATED, value).apply()
+    }
+
+    /** Maestro: manda todo por canal silencioso (ver [Notifications]). */
+    fun silenceAllNotifs(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_NOTIF_SILENCE_ALL, false)
+
+    fun setSilenceAllNotifs(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_NOTIF_SILENCE_ALL, value).apply()
+    }
 }
+
+/**
+ * Cómo se activa Video Boost.
+ *
+ * - [ALWAYS]: el servicio de accesibilidad queda encendido siempre y filtra en
+ *   código (comportamiento histórico). No necesita permisos especiales.
+ * - [ON_DEMAND]: el servicio está APAGADO salvo mientras Pixel Camera está en
+ *   primer plano; [CameraWatchService] lo enciende al detectar la cámara y lo
+ *   apaga al salir. Necesita "Acceso de uso" + `WRITE_SECURE_SETTINGS`, o sea
+ *   los permisos especiales que la app se auto-concede por ADB/Shizuku.
+ */
+enum class ActivationMode { ALWAYS, ON_DEMAND }
+
+private const val MODE_ALWAYS = "always"
+private const val MODE_ON_DEMAND = "on_demand"

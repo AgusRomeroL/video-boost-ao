@@ -24,6 +24,10 @@
          igual por la vía de siempre (ver SecureSettings). -->
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
+    <!-- Modo bajo demanda: el vigilante (CameraWatchService) tiene que volver
+         tras un reinicio o una actualizacion de la app, o el servicio de
+         accesibilidad se quedaria apagado para siempre. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!--
       Visibilidad de paquetes (Android 11+): sin esto, PackageManager solo ve
@@ -76,6 +80,28 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Detects when a foreground banking/sensitive app closes so Video Boost's accessibility service can be re-enabled." />
         </service>
+
+        <!-- Vigilante del modo bajo demanda: detecta que la cámara se abre para
+             encender el servicio de accesibilidad solo entonces. -->
+        <service
+            android:name=".CameraWatchService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Detects when the Pixel Camera app comes to the foreground so Video Boost's accessibility service can be enabled only for that session and disabled again on exit." />
+        </service>
+
+        <!-- Relanza el vigilante tras un reinicio o una actualización. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Emparejamiento ADB por notificación (mDNS del diálogo de pairing). -->
         <service

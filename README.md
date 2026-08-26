@@ -18,6 +18,13 @@ and turns it on only if it is off (it never taps blindly; if it is already on
 it does nothing). Then it closes the panel to leave the viewfinder exactly as
 it found it. The whole sequence takes about half a second.
 
+**Fully open source (MIT), no ads, no analytics, no accounts.** Everything the
+app does is documented below in
+[Transparency](#transparency-what-it-does-and-what-it-never-does) and
+[Permissions, explained](#permissions-explained), and inside the app itself
+under **About, privacy & source code** — so nobody has to take anyone's word
+for it.
+
 ## Install
 
 New here, or sharing the app with someone? See the
@@ -76,10 +83,16 @@ touching accessibility settings, and checks GitHub for **updates** on launch
 
 | Guided setup | Accessibility, highlighted | Active |
 |:---:|:---:|:---:|
-| ![Guided setup](docs/tutorial-1-setup.png) | ![Accessibility highlighted](docs/tutorial-2-accessibility.png) | ![Active](docs/tutorial-5-active.png) |
-| A guided card walks you through the two permissions. | "Open Accessibility settings" jumps straight to your entry, **highlighted**. | Once enabled, the guide collapses to a checkmark you can reopen anytime. |
+| ![Guided setup](docs/tutorial-1-setup.png) | ![Accessibility highlighted](docs/tutorial-2-accessibility.png) | ![Active](docs/tutorial-6-active.png) |
+| Before setup, the app shows **only** the guide — nothing to get lost in. | "Open Accessibility settings" jumps straight to your entry, **highlighted**. | Status, master switch and a short settings list; everything else lives one tap deeper. |
 
-Full walkthrough with the "restricted setting" flow: **[install & setup tutorial](docs/TUTORIAL.md)**.
+| Activation modes | Sensitive apps | About & privacy |
+|:---:|:---:|:---:|
+| ![Activation modes](docs/tutorial-8-mode.png) | ![Sensitive apps](docs/tutorial-9-sensitive.png) | ![About & privacy](docs/tutorial-12-about.png) |
+| Always-on or only while the Camera is open. | Auto-off around banks, reminders, full-auto. | What it does exactly, every permission explained. |
+
+Full walkthrough — install, both Android warnings, and every screen:
+**[install & setup tutorial](docs/TUTORIAL.md)**.
 
 ## Enabling the accessibility service (step by step)
 
@@ -106,6 +119,12 @@ no need to disable accessibility.
 
 - Re-enables Video Boost on every camera session, the thing Pixel Camera
   refuses to remember.
+- **Two activation modes**: always on (works on any Pixel Pro, no special
+  permissions) or **only when the Camera opens**, which keeps the accessibility
+  service switched off the rest of the time. See
+  [Activation modes](#activation-modes).
+- **Notification controls**: a switch per notice, a silence-everything master,
+  and shortcuts to the Android channel settings.
 - **74 languages**: the UI labels it looks for are not guessed; they are
   extracted directly from the real Pixel Camera APK
   ([`CameraLabels.kt`](app/src/main/java/com/agustin/videoboostao/CameraLabels.kt)).
@@ -118,12 +137,120 @@ no need to disable accessibility.
   stepping out for five seconds and going back doesn't trip the bank's
   anti-fraud check. The countdown notification lets you wait longer or turn it
   on now, and opening the Camera turns it on immediately.
-- Material 3 UI (Compose) with dynamic color, guided onboarding, master
-  switch, and an update checker.
+- Material 3 Expressive UI (Compose) with dynamic color and a layout built for
+  first-time users: the main screen shows only status, the master switch and a
+  short settings list; mode, sensitive apps, notifications, wireless ADB and
+  the About screen each live one tap deeper. Before setup, the app shows only
+  the guided steps.
+- **About, privacy & source code screen** in the app: what it does exactly,
+  what it never does, every permission explained, why it isn't on the Play
+  Store, and a link to this repo — readable *before* you grant anything.
 - No root and no analytics. Full-auto is optional and off by default; when you
   want it, you can use either Shizuku **or** a built-in wireless-ADB mode (no
   second app). `INTERNET` permission is used for the GitHub release check and,
   if you enable it, the local ADB connection to your own device.
+
+## Transparency: what it does, and what it never does
+
+Granting an accessibility service is a big ask — Android's own dialog says
+"full control of your device", and it should make you pause. So here is the
+complete, auditable answer, which the app also shows in **About, privacy &
+source code**:
+
+**What it does, exactly.** It watches for Pixel Camera in video mode. When it
+appears, it opens the Video Settings panel, reads the real state of the Video
+Boost toggle, turns it on only if it is off, and closes the panel — about half
+a second. That is all. It only reads and taps controls inside Pixel Camera;
+accessibility events from other apps are used solely to notice that the Camera
+left the screen or that a sensitive app opened, and are discarded on the spot
+([`VideoBoostService.kt`](app/src/main/java/com/agustin/videoboostao/VideoBoostService.kt)).
+
+**What it never does.** It never reads or stores what is on your screen, never
+collects data, and has no analytics, no ads and no accounts. Nothing leaves
+your phone: the only network use is checking GitHub for new versions
+([`UpdateChecker.kt`](app/src/main/java/com/agustin/videoboostao/UpdateChecker.kt),
+plain `HttpURLConnection`, fails silently offline) and, only if you enable it,
+the wireless-ADB connection **to your own phone over localhost**.
+
+**Don't take our word for it.** The complete source is in this repository under
+the MIT license; anyone can read it, audit it, or build the APK themselves with
+`./gradlew assembleRelease`.
+
+## Permissions, explained
+
+Everything the app declares or can be granted, and why:
+
+| Permission | Required? | What it is for |
+|---|---|---|
+| **Accessibility service** | Yes | The only way to flip a switch inside another app without root. Only touches Pixel Camera; see [Transparency](#transparency-what-it-does-and-what-it-never-does). |
+| **`INTERNET`** | Yes | One thing only: asking GitHub whether there is a newer release. No other traffic, ever. |
+| **Notifications** (`POST_NOTIFICATIONS`) | Yes | The reminders and confirmations you control in the Notifications screen; every optional one can be switched off. |
+| **Foreground service** | Yes | What Android requires while the app waits for a sensitive app to close, or for the Camera to open in on-demand mode. Its notification is system-required and can be silenced. |
+| **Usage access** | Optional | Only for full-auto / on-demand mode: lets the app see which app is in the foreground, locally, so it knows when the Camera opens or a sensitive app closes. Nothing is recorded. |
+| **`WRITE_SECURE_SETTINGS`** | Optional | Granted only by you, through wireless ADB or Shizuku: lets the app switch its own accessibility service on and off — the same `settings` command you would type over ADB, nothing else. |
+
+**About the Play Store.** Play's policy forbids using accessibility to automate
+another app, which is this app's whole purpose — so it is not, and will not
+be, on the Play Store. That is also why **Play Protect warns** when you install
+the APK: it flags every sideloaded accessibility app (Tasker and MacroDroid
+users know the drill), and it does not mean something is wrong. See the
+[install section](#app-blocked-by-play-protect-when-installing-the-apk) for how
+to get past the warning, and *Distribution notes* below.
+
+## Activation modes
+
+There are two ways to run it. You pick one in **How it turns on**, on the main
+screen, and you can switch back and forth at any time.
+
+### Always on (default)
+
+The accessibility service stays enabled and filters events in code. It works on
+any Pixel Pro with no special permissions, and it is the mode everything below
+about **sensitive apps** exists for: banks refuse to run while an accessibility
+service is active, so the app turns itself off for them and back on afterwards.
+
+### Only when the Camera opens (needs the ADB permissions)
+
+The accessibility service stays **off**. A small foreground watcher notices that
+Pixel Camera came to the front, switches the service on for that session, and
+switches it off again when you leave. A bank never sees it running, so there is
+nothing to turn off and nothing to re-enable.
+
+It needs the two special permissions the app can already grant itself once
+through wireless ADB or Shizuku (see the full-auto sections below):
+
+- **Usage access** — to know which app is in the foreground.
+- **`WRITE_SECURE_SETTINGS`** — to switch its own accessibility service on and
+  off locally, with no ADB connection open at runtime.
+
+If either one is missing, the app says so and keeps running in always-on mode
+until you grant them; it never silently does nothing.
+
+How it detects the camera, since that part has to be both instant and cheap: the
+system's `CameraManager` availability callback fires the moment **any** app
+takes a camera (no polling), and the app then confirms with usage stats that the
+foreground app really is Pixel Camera. Instagram or WhatsApp opening their own
+camera switches nothing on. A slow backup poll runs only while the screen is on,
+in case the callback does not arrive.
+
+**Grace period on exit** (0–60 s, 15 by default): stepping out to the gallery
+and coming back does not switch the service off and on again. A sensitive app in
+the foreground cuts the grace short and switches off at once.
+
+## Notification controls
+
+**Notifications**, on the main screen, has a switch for every optional notice
+(service turned off, sensitive app closed, Video Boost is back on) plus an
+optional silent **"Video Boost activated"** confirmation, off by default, that
+tells you the toggle really was flipped in the Camera.
+
+There is also a **Silence everything** master switch, and a shortcut to each
+notification channel in Android settings for sound and importance.
+
+Notifications that belong to a running foreground service (paused for a
+sensitive app, the re-enable countdown, the on-demand watcher) can be silenced
+but not hidden: Android requires them while the service runs, and the app does
+not pretend otherwise with a switch that would do nothing.
 
 ## Requirements
 
@@ -155,6 +282,10 @@ your Pixel model, Android version, Pixel Camera version, and `adb logcat -s
 VideoBoostAO` output if you can.
 
 ## Sensitive apps (banking, etc.)
+
+> This section is about **always-on** mode. In **on-demand** mode the service
+> only exists while the Camera is open, so none of this machinery is needed and
+> the app hides it.
 
 Banks and other sensitive apps refuse to run when any non-allowlisted
 accessibility service is **enabled** (an anti-fraud measure, since that API can
@@ -348,11 +479,16 @@ keyPassword=...
 for a non-accessibility purpose (automating another app's UI), which Play's
 policy requires declaring and effectively prohibits, with account-level
 enforcement risk. Distribution is via GitHub Releases (this repo), Obtainium,
-and F-Droid-compatible repos that ship the developer-signed APK.
+and F-Droid-compatible repos that ship the developer-signed APK. The friction
+this causes at install time (Play Protect, restricted settings) is covered in
+[Permissions, explained](#permissions-explained) and the
+[tutorial](docs/TUTORIAL.md).
 
 ## Support
 
-If this app saves you a daily tap, you can support development:
+The app is free, open source, and has no ads or tracking — and will stay that
+way. If it saves you a daily tap, you can support development (it helps keep
+the app working after every Pixel Camera Feature Drop):
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/agusromero)
 
