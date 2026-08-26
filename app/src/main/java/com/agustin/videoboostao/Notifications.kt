@@ -197,7 +197,7 @@ object Notifications {
      *
      * El tiempo lo dibuja el sistema: [setWhen] con el instante límite en reloj
      * de pared + cronómetro en cuenta atrás. Así el número baja solo, sin
-     * re-postear cada segundo — re-postear sería la forma segura de que el
+     * re-postear cada segundo; re-postear sería la forma segura de que el
      * usuario silencie la app. Los minutos van también en el texto porque el
      * cronómetro no se dibuja en todos los templates.
      */

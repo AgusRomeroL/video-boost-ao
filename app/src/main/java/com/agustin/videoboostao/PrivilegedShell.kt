@@ -35,7 +35,7 @@ interface PrivilegedShell {
      * Deshace [grantSecureSettings]. **Sin llamador automático a propósito**, a
      * diferencia del "Acceso de uso": revocarlo exige abrir una conexión ADB, o
      * sea re-mostrar la notificación de "Depuración inalámbrica" del sistema que
-     * este permiso vino justamente a eliminar, y a cambio de nada — no da acceso
+     * este permiso vino justamente a eliminar, y a cambio de nada: no da acceso
      * a ningún dato, solo deja escribir los settings que la app ya escribía por
      * ADB, y desaparece al desinstalar. (Comprobado en el Pixel 10 Pro XL:
      * `pm revoke` NO mata el proceso ni tira el servicio de accesibilidad, así

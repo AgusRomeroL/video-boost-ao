@@ -149,7 +149,7 @@ object InitialEnable {
      * sana y reconectar solo suma ruido de notificación del sistema), pero sí se
      * reconecta si [AdbManager.exec] la dio por perdida al agotar los reintentos
      * de stream: sin esto, un solo stream fallido dejaba muertos todos los
-     * comandos siguientes de la misma tanda — que es lo que hacía fallar el
+     * comandos siguientes de la misma tanda, que es lo que hacía fallar el
      * auto-permiso de escritura local justo después de conceder el "Acceso de
      * uso".
      *

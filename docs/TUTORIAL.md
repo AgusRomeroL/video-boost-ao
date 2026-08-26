@@ -20,7 +20,7 @@ The basic setup takes about a minute.
 >
 > The app only reads and taps controls *inside Pixel Camera*. It has no ads, no
 > analytics, and its only network use is checking GitHub for updates. It is
-> fully **open source**: https://github.com/AgusRomeroL/video-boost-ao — and the
+> fully **open source**: https://github.com/AgusRomeroL/video-boost-ao, and the
 > app itself has an **"About, privacy & source code"** screen that explains
 > exactly what it does and what every permission is for.
 >
@@ -41,11 +41,11 @@ accessibility to automate another app's UI). More on that in the README's
 [Transparency](../README.md#transparency-what-it-does-and-what-it-never-does)
 and [Permissions](../README.md#permissions-explained) sections.
 
-## Part 1 — Install and enable
+## Part 1: Install and enable
 
 The app walks you through it. The setup guide stays available inside the app the
 whole time, and until the service is enabled the main screen shows **only** the
-setup — no settings to get lost in.
+setup, with no settings to get lost in.
 
 ### 1. Open the app
 
@@ -65,7 +65,7 @@ highlighted. Tap it and turn **Use Video Boost Always-On** on.
 This is Android's standard dialog for **any** accessibility service, and its
 wording is intentionally broad ("full control of your device"). What this app
 actually does with the permission: read and tap controls inside Pixel Camera,
-nothing else — the in-app **About** screen and the open source code spell it
+nothing else, and the in-app **About** screen and the open source code spell it
 out. Tap **Allow**.
 
 ![Android's confirmation dialog](tutorial-3-confirm.png)
@@ -90,12 +90,12 @@ fingerprint or PIN. Now repeat step 2 and the toggle will work.
 
 The hero turns to **Always-on**: Video Boost turns on by itself every time you
 open the Camera in video mode. The switch inside the hero pauses the automation
-whenever you want, without touching accessibility settings — and **Try it now**
+whenever you want, without touching accessibility settings, and **Try it now**
 opens the Camera so you can watch it work.
 
 ![Always-on](tutorial-6-active.png)
 
-## Part 2 — Getting to know the app
+## Part 2: Getting to know the app
 
 Once the service is enabled, the main screen shows a short settings list. Every
 entry has a one-line summary of its current state, so you always know how the
@@ -105,14 +105,14 @@ app is configured without opening anything.
 
 ### How it turns on (activation modes)
 
-Two ways to run it, both valid — this screen explains them and lets you switch
+Two ways to run it, both valid; this screen explains them and lets you switch
 at any time:
 
 - **Always on** (default): the accessibility service stays enabled. Works with
   no special permissions; sensitive apps make it turn itself off (next section).
 - **Only when the Camera opens**: the service stays off and is switched on just
   for the camera session. Banks never see it. Needs the two special permissions
-  the app can grant itself once through **Wireless ADB** or Shizuku — the screen
+  the app can grant itself once through **Wireless ADB** or Shizuku, and the screen
   tells you exactly what is missing and grants it with one tap once ADB is
   paired.
 
@@ -123,7 +123,7 @@ at any time:
 Banks block phones with an active accessibility service (anti-fraud). This
 screen controls the protection: the app turns itself off automatically when a
 flagged app opens (~330 banks/wallets built in, plus any you add), reminds you
-with a notification, and — with full-auto via Shizuku or wireless ADB — turns
+with a notification and, with full-auto via Shizuku or wireless ADB, turns
 itself back on when you leave, after a configurable grace period.
 
 ![Sensitive apps](tutorial-9-sensitive.png)
@@ -133,7 +133,7 @@ itself back on when you leave, after a configurable grace period.
 Every optional notice has its own switch, there is a **Silence everything**
 master, and each row links to its Android channel for sound and importance. The
 ones Android requires while a foreground service runs can be silenced, not
-hidden — the app says so instead of faking a switch.
+hidden, and the app says so instead of faking a switch.
 
 ![Notifications](tutorial-10-notifications.png)
 
@@ -143,7 +143,7 @@ The in-app alternative to Shizuku: pair once with your phone's own **Wireless
 debugging** and the app can enable its accessibility service (skipping the
 restricted-setting wall) and re-enable it automatically after a sensitive app.
 The pairing happens through a notification, so you never leave the pairing
-screen. Optional — the app works fine without it.
+screen. Optional: the app works fine without it.
 
 ![Wireless ADB](tutorial-11-adb.png)
 

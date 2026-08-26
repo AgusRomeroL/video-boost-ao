@@ -59,10 +59,10 @@
     <string name="fullauto_status_adb">Full-auto activo (ADB inalámbrico): se reactiva solo tras una app sensible.</string>
     <string name="fullauto_status_usage">Recordatorios activos: te avisa cuando cerrás la app.</string>
     <string name="fullauto_status_off">Te avisa al abrir la app. Tocá para configurar más.</string>
-    <string name="fullauto_body">Por defecto el aviso aparece al abrir una app sensible. Con monitoreo, la notificación es silenciosa mientras la app está abierta y recién te avisa cuando la cerrás. Con Shizuku, Video Boost además se reactiva solo — sin tocar nada.</string>
+    <string name="fullauto_body">Por defecto el aviso aparece al abrir una app sensible. Con monitoreo, la notificación es silenciosa mientras la app está abierta y recién te avisa cuando la cerrás. Con Shizuku, Video Boost además se reactiva solo, sin tocar nada.</string>
     <string name="fullauto_switch">Full-auto (Shizuku)</string>
     <string name="fullauto_shizuku_ready">Shizuku conectado y listo.</string>
-    <string name="fullauto_shizuku_needs_perm">Shizuku está corriendo — concedé el permiso a Video Boost.</string>
+    <string name="fullauto_shizuku_needs_perm">Shizuku está corriendo. Concedé el permiso a Video Boost.</string>
     <string name="fullauto_shizuku_absent">No se detectó Shizuku. Mirá los pasos de abajo.</string>
     <string name="fullauto_grant_shizuku">Conceder permiso de Shizuku</string>
     <string name="fullauto_usage_hint">¿Sin Shizuku? Concedé “Acceso de uso” y aun así recibís el aviso cuando la app sensible se cierra (reactivás a mano).</string>
@@ -74,21 +74,21 @@
     <string name="fullauto_step2_title">Iniciá Shizuku</string>
     <string name="fullauto_step2_body">Abrí Shizuku e iniciálo por depuración inalámbrica (Android 11+), una PC con ADB, o root. La propia guía de Shizuku te lleva paso a paso. Puede que tengas que reiniciarlo tras reiniciar el teléfono.</string>
     <string name="fullauto_step3_title">Activá el full-auto</string>
-    <string name="fullauto_step3_body">Volvé acá, activá “Full-auto (Shizuku)” arriba y aceptá el permiso que pide Shizuku. Listo — Video Boost maneja las apps sensibles solo.</string>
+    <string name="fullauto_step3_body">Volvé acá, activá “Full-auto (Shizuku)” arriba y aceptá el permiso que pide Shizuku. Listo: Video Boost maneja las apps sensibles solo.</string>
 
     <!-- Alternativa in-app a Shizuku: auto-permiso por ADB inalámbrico -->
     <string name="adb_section_title">¿Sin Shizuku? Usá ADB inalámbrico</string>
     <string name="adb_status_ready">ADB inalámbrico emparejado y full-auto activo.</string>
     <string name="adb_status_paired_disconnected">Emparejado. Tras reiniciar, reactivá la depuración inalámbrica y reconectá.</string>
     <string name="adb_status_off">Emparejá una vez para activar y reactivar Video Boost sin Shizuku.</string>
-    <string name="adb_section_body">En vez de instalar Shizuku, Video Boost puede hablar directo con la “Depuración inalámbrica” de tu teléfono. Emparejás una vez y puede encender su servicio de accesibilidad y reactivarlo tras cerrarse una app sensible — sin una segunda app.</string>
+    <string name="adb_section_body">En vez de instalar Shizuku, Video Boost puede hablar directo con la “Depuración inalámbrica” de tu teléfono. Emparejás una vez y puede encender su servicio de accesibilidad y reactivarlo tras cerrarse una app sensible, sin una segunda app.</string>
     <string name="adb_step1_title">Activá la Depuración inalámbrica</string>
     <string name="adb_step1_body">En Opciones de desarrollador, activá “Depuración inalámbrica”. (Primero habilitá Opciones de desarrollador tocando 7 veces el número de compilación.)</string>
     <string name="adb_open_devoptions">Abrir Opciones de desarrollador</string>
     <string name="adb_step2_title">Emparejá con un código</string>
-    <string name="adb_step2_body">Tocá abajo y luego abrí “Vincular dispositivo con un código”. Aparecerá una notificación donde escribís el código de 6 dígitos — así no salís nunca de la pantalla de vinculación.</string>
+    <string name="adb_step2_body">Tocá abajo y luego abrí “Vincular dispositivo con un código”. Aparecerá una notificación donde escribís el código de 6 dígitos, así no salís nunca de la pantalla de vinculación.</string>
     <string name="adb_btn_start_pairing">Empezar emparejamiento</string>
-    <string name="adb_waiting_hint">Ahora abrí Depuración inalámbrica → “Vincular dispositivo con un código”. Una notificación te pedirá el código — escribílo ahí sin salir de esa pantalla.</string>
+    <string name="adb_waiting_hint">Ahora abrí Depuración inalámbrica → “Vincular dispositivo con un código”. Una notificación te pedirá el código: escribílo ahí sin salir de esa pantalla.</string>
     <string name="adb_manual_show">Escribir el código acá (avanzado)</string>
     <string name="adb_manual_hide">Ocultar entrada manual</string>
     <string name="adb_code_label">Código de vinculación</string>
@@ -112,7 +112,7 @@
     <string name="adb_notif_searching_title">Esperando la pantalla de vinculación</string>
     <string name="adb_notif_searching_text">Abrí Opciones de desarrollador → Depuración inalámbrica → “Vincular dispositivo con un código”. Tené a mano esta notificación.</string>
     <string name="adb_notif_title">Escribí el código de vinculación</string>
-    <string name="adb_notif_title_retry">Falló — probá el código de nuevo</string>
+    <string name="adb_notif_title_retry">Falló: probá el código de nuevo</string>
     <string name="adb_notif_text">Escribí el código de 6 dígitos que muestra la pantalla de vinculación. Podés hacerlo acá mismo, sin salir de esa pantalla.</string>
     <string name="adb_notif_code_hint">Código de 6 dígitos</string>
     <string name="adb_notif_action">Escribir código</string>
@@ -261,7 +261,7 @@
     <string name="perm_usage_title">Acceso de uso (opcional)</string>
     <string name="perm_usage_body">Solo si activás el full-auto o el modo bajo demanda: le deja ver qué app está en primer plano, localmente, para saber cuándo se abre la Cámara o se cierra una app sensible. No se registra nada en ningún lado.</string>
     <string name="perm_secure_title">WRITE_SECURE_SETTINGS (opcional)</string>
-    <string name="perm_secure_body">Lo concedés solo vos, por ADB inalámbrico o Shizuku: le permite encender y apagar su propio servicio de accesibilidad — el mismo comando que escribirías por ADB, nada más.</string>
+    <string name="perm_secure_body">Lo concedés solo vos, por ADB inalámbrico o Shizuku: le permite encender y apagar su propio servicio de accesibilidad, el mismo comando que escribirías por ADB, nada más.</string>
     <string name="about_play_title">Por qué no está en la Play Store</string>
     <string name="about_play_body">La política de Play prohíbe usar accesibilidad para automatizar otra app, que es justamente el propósito de esta. Por eso mismo Play Protect advierte al instalar el APK: marca a toda app de accesibilidad instalada por fuera, y no significa que algo esté mal. La distribución es por GitHub Releases y Obtainium.</string>
     <string name="about_version">Versión %1$s</string>

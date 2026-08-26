@@ -535,7 +535,7 @@ private fun NavList(items: List<NavItem>) {
 
 /**
  * Apoyo al proyecto: prominente pero no invasivo. Una tarjeta cálida fija al
- * final de la pantalla principal — sin popups, sin cuenta atrás, sin insistir.
+ * final de la pantalla principal: sin popups, sin cuenta atrás, sin insistir.
  * Solo aparece cuando la app ya funciona: pedir apoyo antes de servir es de
  * mal gusto.
  */
@@ -1707,8 +1707,8 @@ private fun AdvancedScreen(onBack: () -> Unit) {
                                 // full-auto no dependa de ADB en caliente: sondeo
                                 // local del primer plano y escritura local para
                                 // reactivar (ver BankWatchService y SecureSettings).
-                                // Al apagar se devuelve el "Acceso de uso" —el de
-                                // escritura no, ver PrivilegedShell—.
+                                // Al apagar se devuelve el "Acceso de uso" (el de
+                                // escritura no, ver PrivilegedShell).
                                 scope.launch {
                                     if (want) InitialEnable.grantFullAutoPermissionsViaAdb(context)
                                     else InitialEnable.revokeUsageAccessViaAdb(context)

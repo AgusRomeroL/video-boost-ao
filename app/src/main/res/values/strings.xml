@@ -59,10 +59,10 @@
     <string name="fullauto_status_adb">Full-auto on (wireless ADB): re-enables itself after a sensitive app.</string>
     <string name="fullauto_status_usage">Smart reminders on: alerts you when the app closes.</string>
     <string name="fullauto_status_off">Reminds you on the app opening. Tap to set up more.</string>
-    <string name="fullauto_body">By default the reminder shows when a sensitive app opens. With monitoring, the notification is silent while the app is open and only alerts you when you close it. With Shizuku, Video Boost also turns itself back on automatically — no tapping.</string>
+    <string name="fullauto_body">By default the reminder shows when a sensitive app opens. With monitoring, the notification is silent while the app is open and only alerts you when you close it. With Shizuku, Video Boost also turns itself back on automatically, with no tapping.</string>
     <string name="fullauto_switch">Full-auto (Shizuku)</string>
     <string name="fullauto_shizuku_ready">Shizuku is connected and ready.</string>
-    <string name="fullauto_shizuku_needs_perm">Shizuku is running — grant permission to Video Boost.</string>
+    <string name="fullauto_shizuku_needs_perm">Shizuku is running. Grant permission to Video Boost.</string>
     <string name="fullauto_shizuku_absent">Shizuku not detected. See the steps below.</string>
     <string name="fullauto_grant_shizuku">Grant Shizuku permission</string>
     <string name="fullauto_usage_hint">No Shizuku? Grant “Usage access” and you\'ll still get the alert when the sensitive app closes (you re-enable manually).</string>
@@ -74,21 +74,21 @@
     <string name="fullauto_step2_title">Start Shizuku</string>
     <string name="fullauto_step2_body">Open Shizuku and start it via wireless debugging (Android 11+), a computer with ADB, or root. Shizuku\'s own guide walks you through it. You may need to restart it after a reboot.</string>
     <string name="fullauto_step3_title">Turn on full-auto</string>
-    <string name="fullauto_step3_body">Come back here, flip “Full-auto (Shizuku)” above and allow the permission Shizuku asks for. Done — Video Boost now handles sensitive apps by itself.</string>
+    <string name="fullauto_step3_body">Come back here, flip “Full-auto (Shizuku)” above and allow the permission Shizuku asks for. Done. Video Boost now handles sensitive apps by itself.</string>
 
     <!-- In-app alternative to Shizuku: wireless-ADB self-grant -->
     <string name="adb_section_title">No Shizuku? Use wireless ADB</string>
     <string name="adb_status_ready">Wireless ADB paired and full-auto on.</string>
     <string name="adb_status_paired_disconnected">Paired. Re-enable wireless debugging after a reboot, then reconnect.</string>
     <string name="adb_status_off">Pair once to enable and re-enable Video Boost without Shizuku.</string>
-    <string name="adb_section_body">Instead of installing Shizuku, Video Boost can talk to your phone\'s own “Wireless debugging” directly. Pair once and it can turn its accessibility service on and re-enable it after a sensitive app closes — no second app.</string>
+    <string name="adb_section_body">Instead of installing Shizuku, Video Boost can talk to your phone\'s own “Wireless debugging” directly. Pair once and it can turn its accessibility service on and re-enable it after a sensitive app closes, with no second app.</string>
     <string name="adb_step1_title">Enable Wireless debugging</string>
     <string name="adb_step1_body">In Developer options, turn on “Wireless debugging”. (Enable Developer options first by tapping the build number 7 times.)</string>
     <string name="adb_open_devoptions">Open Developer options</string>
     <string name="adb_step2_title">Pair with a code</string>
-    <string name="adb_step2_body">Tap below, then open “Pair device with a pairing code”. A notification will pop up where you type the 6-digit code — so you never have to leave the pairing screen.</string>
+    <string name="adb_step2_body">Tap below, then open “Pair device with a pairing code”. A notification will pop up where you type the 6-digit code, so you never have to leave the pairing screen.</string>
     <string name="adb_btn_start_pairing">Start pairing</string>
-    <string name="adb_waiting_hint">Now open Wireless debugging → “Pair device with a pairing code”. A notification will ask for the code — type it there without leaving that screen.</string>
+    <string name="adb_waiting_hint">Now open Wireless debugging → “Pair device with a pairing code”. A notification will ask for the code. Type it there without leaving that screen.</string>
     <string name="adb_manual_show">Enter the code here instead (advanced)</string>
     <string name="adb_manual_hide">Hide manual entry</string>
     <string name="adb_code_label">Pairing code</string>
@@ -112,7 +112,7 @@
     <string name="adb_notif_searching_title">Waiting for the pairing screen</string>
     <string name="adb_notif_searching_text">Open Developer options → Wireless debugging → “Pair device with a pairing code”. Keep this notification handy.</string>
     <string name="adb_notif_title">Enter the pairing code</string>
-    <string name="adb_notif_title_retry">Pairing failed — try the code again</string>
+    <string name="adb_notif_title_retry">Pairing failed: try the code again</string>
     <string name="adb_notif_text">Type the 6-digit code shown on the pairing screen. You can do it right here, without leaving that screen.</string>
     <string name="adb_notif_code_hint">6-digit code</string>
     <string name="adb_notif_action">Enter code</string>
@@ -239,15 +239,15 @@
 
     <!-- Support & about -->
     <string name="support_title">Free &amp; open source</string>
-    <string name="support_body">No ads, no tracking, no accounts. If this app saves your videos, you can support its development — it helps keep it working after every Pixel Camera update.</string>
+    <string name="support_body">No ads, no tracking, no accounts. If this app saves your videos, you can support its development. It helps keep it working after every Pixel Camera update.</string>
     <string name="nav_about_title">About, privacy &amp; source code</string>
     <string name="nav_about_sub">What it does exactly, every permission explained</string>
     <string name="about_what_title">What this app does, exactly</string>
-    <string name="about_what_body">It watches for Pixel Camera in video mode. When it appears, it opens the Video Settings panel, reads the real state of the Video Boost toggle, turns it on only if it is off, and closes the panel — about half a second. That is all. It only reads and taps controls inside Pixel Camera; events from other apps are used solely to notice that the Camera left the screen or that a sensitive app opened, and are discarded on the spot.</string>
+    <string name="about_what_body">It watches for Pixel Camera in video mode. When it appears, it opens the Video Settings panel, reads the real state of the Video Boost toggle, turns it on only if it is off, and closes the panel, all in about half a second. That is all. It only reads and taps controls inside Pixel Camera; events from other apps are used solely to notice that the Camera left the screen or that a sensitive app opened, and are discarded on the spot.</string>
     <string name="about_never_title">What it never does</string>
     <string name="about_never_body">It never reads or stores what is on your screen, never collects data, and has no analytics, no ads and no accounts. Nothing leaves your phone: the only network use is checking GitHub for new versions (and, if you enable it, the wireless-ADB connection to your own phone over localhost).</string>
     <string name="about_open_title">Open source (MIT)</string>
-    <string name="about_open_body">The complete source code is public. Anyone can read it, audit it or build the APK themselves — you do not have to take anyone\'s word for any of this.</string>
+    <string name="about_open_body">The complete source code is public. Anyone can read it, audit it or build the APK themselves. You do not have to take anyone\'s word for any of this.</string>
     <string name="btn_view_source">View the source code on GitHub</string>
     <string name="about_perms_title">Every permission, explained</string>
     <string name="perm_a11y_title">Accessibility service</string>
@@ -261,7 +261,7 @@
     <string name="perm_usage_title">Usage access (optional)</string>
     <string name="perm_usage_body">Only if you enable full-auto or on-demand mode: lets the app see which app is in the foreground, locally, so it knows when the Camera opens or a sensitive app closes. Nothing is recorded anywhere.</string>
     <string name="perm_secure_title">WRITE_SECURE_SETTINGS (optional)</string>
-    <string name="perm_secure_body">Granted only by you, through wireless ADB or Shizuku: lets the app switch its own accessibility service on and off — the same command you would type over ADB, nothing else.</string>
+    <string name="perm_secure_body">Granted only by you, through wireless ADB or Shizuku: lets the app switch its own accessibility service on and off, the same command you would type over ADB, nothing else.</string>
     <string name="about_play_title">Why it is not on the Play Store</string>
     <string name="about_play_body">Play\'s policy forbids using accessibility to automate another app, which is this app\'s whole purpose. That is also why Play Protect warns when you install the APK: it flags every sideloaded accessibility app, and it does not mean something is wrong. Distribution is through GitHub Releases and Obtainium instead.</string>
     <string name="about_version">Version %1$s</string>

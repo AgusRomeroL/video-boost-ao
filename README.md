@@ -22,7 +22,7 @@ it found it. The whole sequence takes about half a second.
 app does is documented below in
 [Transparency](#transparency-what-it-does-and-what-it-never-does) and
 [Permissions, explained](#permissions-explained), and inside the app itself
-under **About, privacy & source code** — so nobody has to take anyone's word
+under **About, privacy & source code**, so nobody has to take anyone's word
 for it.
 
 ## Install
@@ -84,14 +84,14 @@ touching accessibility settings, and checks GitHub for **updates** on launch
 | Guided setup | Accessibility, highlighted | Active |
 |:---:|:---:|:---:|
 | ![Guided setup](docs/tutorial-1-setup.png) | ![Accessibility highlighted](docs/tutorial-2-accessibility.png) | ![Active](docs/tutorial-6-active.png) |
-| Before setup, the app shows **only** the guide — nothing to get lost in. | "Open Accessibility settings" jumps straight to your entry, **highlighted**. | Status, master switch and a short settings list; everything else lives one tap deeper. |
+| Before setup, the app shows **only** the guide, with nothing to get lost in. | "Open Accessibility settings" jumps straight to your entry, **highlighted**. | Status, master switch and a short settings list; everything else lives one tap deeper. |
 
 | Activation modes | Sensitive apps | About & privacy |
 |:---:|:---:|:---:|
 | ![Activation modes](docs/tutorial-8-mode.png) | ![Sensitive apps](docs/tutorial-9-sensitive.png) | ![About & privacy](docs/tutorial-12-about.png) |
 | Always-on or only while the Camera is open. | Auto-off around banks, reminders, full-auto. | What it does exactly, every permission explained. |
 
-Full walkthrough — install, both Android warnings, and every screen:
+Full walkthrough (install, both Android warnings, and every screen):
 **[install & setup tutorial](docs/TUTORIAL.md)**.
 
 ## Enabling the accessibility service (step by step)
@@ -144,7 +144,7 @@ no need to disable accessibility.
   the guided steps.
 - **About, privacy & source code screen** in the app: what it does exactly,
   what it never does, every permission explained, why it isn't on the Play
-  Store, and a link to this repo — readable *before* you grant anything.
+  Store, and a link to this repo, readable *before* you grant anything.
 - No root and no analytics. Full-auto is optional and off by default; when you
   want it, you can use either Shizuku **or** a built-in wireless-ADB mode (no
   second app). `INTERNET` permission is used for the GitHub release check and,
@@ -152,15 +152,15 @@ no need to disable accessibility.
 
 ## Transparency: what it does, and what it never does
 
-Granting an accessibility service is a big ask — Android's own dialog says
+Granting an accessibility service is a big ask: Android's own dialog says
 "full control of your device", and it should make you pause. So here is the
 complete, auditable answer, which the app also shows in **About, privacy &
 source code**:
 
 **What it does, exactly.** It watches for Pixel Camera in video mode. When it
 appears, it opens the Video Settings panel, reads the real state of the Video
-Boost toggle, turns it on only if it is off, and closes the panel — about half
-a second. That is all. It only reads and taps controls inside Pixel Camera;
+Boost toggle, turns it on only if it is off, and closes the panel, all in
+about half a second. That is all. It only reads and taps controls inside Pixel Camera;
 accessibility events from other apps are used solely to notice that the Camera
 left the screen or that a sensitive app opened, and are discarded on the spot
 ([`VideoBoostService.kt`](app/src/main/java/com/agustin/videoboostao/VideoBoostService.kt)).
@@ -187,10 +187,10 @@ Everything the app declares or can be granted, and why:
 | **Notifications** (`POST_NOTIFICATIONS`) | Yes | The reminders and confirmations you control in the Notifications screen; every optional one can be switched off. |
 | **Foreground service** | Yes | What Android requires while the app waits for a sensitive app to close, or for the Camera to open in on-demand mode. Its notification is system-required and can be silenced. |
 | **Usage access** | Optional | Only for full-auto / on-demand mode: lets the app see which app is in the foreground, locally, so it knows when the Camera opens or a sensitive app closes. Nothing is recorded. |
-| **`WRITE_SECURE_SETTINGS`** | Optional | Granted only by you, through wireless ADB or Shizuku: lets the app switch its own accessibility service on and off — the same `settings` command you would type over ADB, nothing else. |
+| **`WRITE_SECURE_SETTINGS`** | Optional | Granted only by you, through wireless ADB or Shizuku: lets the app switch its own accessibility service on and off, the same `settings` command you would type over ADB, nothing else. |
 
 **About the Play Store.** Play's policy forbids using accessibility to automate
-another app, which is this app's whole purpose — so it is not, and will not
+another app, which is this app's whole purpose, so it is not, and will not
 be, on the Play Store. That is also why **Play Protect warns** when you install
 the APK: it flags every sideloaded accessibility app (Tasker and MacroDroid
 users know the drill), and it does not mean something is wrong. See the
@@ -219,8 +219,8 @@ nothing to turn off and nothing to re-enable.
 It needs the two special permissions the app can already grant itself once
 through wireless ADB or Shizuku (see the full-auto sections below):
 
-- **Usage access** — to know which app is in the foreground.
-- **`WRITE_SECURE_SETTINGS`** — to switch its own accessibility service on and
+- **Usage access**: to know which app is in the foreground.
+- **`WRITE_SECURE_SETTINGS`**: to switch its own accessibility service on and
   off locally, with no ADB connection open at runtime.
 
 If either one is missing, the app says so and keeps running in always-on mode
@@ -311,24 +311,24 @@ Every package is verified against its Google Play listing. In the app you can:
 
 ### Smarter reminders and full-auto
 
-A disabled accessibility service is blind — on its own it can't tell when you
+A disabled accessibility service is blind: on its own it can't tell when you
 *leave* the sensitive app. Give the app a way to watch the foreground and it gets
 much nicer:
 
 | Setup | While the app is open | When you close it |
 |---|---|---|
-| **Default** (nothing) | reminder fires immediately | — (you re-enable manually) |
+| **Default** (nothing) | reminder fires immediately | nothing (you re-enable manually) |
 | **Usage access** granted | **silent** "paused" notice | **alerting** reminder to re-enable |
 | **Shizuku** (full-auto) | **silent** "paused" notice | **re-enables itself** + a "back on" notice |
 | **Wireless ADB** (full-auto, no extra app) | **silent** "paused" notice | **re-enables itself** + a "back on" notice |
 
 So the notification is only *silent* while you're actually in the bank app, and
-only *alerts* you once you're out — and with full-auto you don't even have to tap.
+only *alerts* you once you're out, and with full-auto you don't even have to tap.
 
 **The grace period.** With full-auto, turning the service back on the instant you
 leave is a problem of its own: step out of your bank for five seconds to check
 something, come back, and the bank now sees an active accessibility service and
-blocks you. So the re-enable waits — **3 minutes by default, adjustable from 0 to
+blocks you. So the re-enable waits: **3 minutes by default, adjustable from 0 to
 10** under *Sensitive apps → Wait before turning back on*. During the wait:
 
 - Going back into any sensitive app **cancels** it and returns to the silent
@@ -351,7 +351,7 @@ blocks you. So the re-enable waits — **3 minutes by default, adjustable from 0
 ### Full-auto with Shizuku (optional)
 
 [Shizuku](https://shizuku.rikka.app/) runs a small helper with shell (ADB-level)
-privileges that ordinary apps can talk to — no root required. Video Boost uses it
+privileges that ordinary apps can talk to, with no root required. Video Boost uses it
 only to flip its own accessibility service back on after a sensitive app closes.
 
 1. **Install Shizuku** from the Play Store or <https://shizuku.rikka.app/>.
@@ -373,9 +373,9 @@ the app quietly falls back to the reminder notification.
 If you'd rather not install a second app, Video Boost can talk to your phone's
 own **Wireless debugging** directly. It pairs once, over localhost, and from then
 on it can turn its accessibility service on and re-enable it after a sensitive
-app closes — the exact same `settings` commands, no root, no Shizuku.
+app closes: the exact same `settings` commands, no root, no Shizuku.
 
-Pairing works like Shizuku's — **you never leave the pairing screen**. Video
+Pairing works like Shizuku's: **you never leave the pairing screen**. Video
 Boost watches for the pairing dialog over mDNS and, the moment it appears, sends
 a notification with an inline reply where you type the code.
 
@@ -385,7 +385,7 @@ a notification with an inline reply where you type the code.
 2. **Start pairing.** In Video Boost open **"No Shizuku? Use wireless ADB"** and
    tap **Start pairing**.
 3. **Open the pairing dialog.** In Wireless debugging, tap **"Pair device with a
-   pairing code"**. A Video Boost notification pops up asking for the code — type
+   pairing code"**. A Video Boost notification pops up asking for the code. Type
    the 6-digit code into it **right there, without leaving the screen** (the IP
    and port are found automatically over mDNS). It pairs and turns full-auto on.
 4. Use **Turn on Video Boost now** to enable the accessibility service the first
@@ -393,14 +393,14 @@ a notification with an inline reply where you type the code.
 
 > A manual entry (type the code, IP and port yourself) is also available under
 > **"Enter the code here instead (advanced)"**, but on most phones leaving the
-> pairing screen ends the session — the notification flow above avoids that.
+> pairing screen ends the session; the notification flow above avoids that.
 
 **It only uses the connection once.** When you turn full-auto on, the app spends
 that one connection granting itself two permissions: *Usage access* (so it can
 see which app is in the foreground locally) and `WRITE_SECURE_SETTINGS` (so it
 can re-enable its own accessibility service with a local write). Both are granted
 with the same `pm`/`appops` commands you'd type over ADB. From then on a
-sensitive-app session opens **no ADB connection at all** — which is also why
+sensitive-app session opens **no ADB connection at all**, which is also why
 Android's own "Wireless debugging" notification stops reappearing every few
 seconds while your bank is open.
 
@@ -411,7 +411,7 @@ you turn full-auto off (revoking needs another ADB connection, and the permissio
 grants no access to your data); uninstalling the app removes it.
 
 After a reboot you have to re-enable the "Wireless debugging" toggle once (an
-Android limitation — Shizuku has the same one) and tap **Reconnect** — but only
+Android limitation; Shizuku has the same one) and tap **Reconnect**, but only
 if the local permission above isn't granted yet. Once it is, full-auto keeps
 working after a reboot with wireless debugging switched off. No new pairing code
 is ever needed, because the paired key is kept.
@@ -421,7 +421,7 @@ This mode is built on the open-source
 which bundles [spake2-android](https://github.com/MuntashirAkon/spake2-java)
 (**LGPL-3.0**) for the pairing handshake and BouncyCastle (MIT). Note that it is
 a community library that has not been independently security-audited, and it
-exercises the same shell-level privilege ADB has — enable it only if you're
+exercises the same shell-level privilege ADB has, so enable it only if you're
 comfortable with that. Nothing leaves the device: the connection is to your own
 phone over localhost.
 
@@ -486,7 +486,7 @@ this causes at install time (Play Protect, restricted settings) is covered in
 
 ## Support
 
-The app is free, open source, and has no ads or tracking — and will stay that
+The app is free, open source, and has no ads or tracking, and will stay that
 way. If it saves you a daily tap, you can support development (it helps keep
 the app working after every Pixel Camera Feature Drop):
 

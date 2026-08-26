@@ -322,7 +322,7 @@ class BankWatchService : Service() {
                 // Con "Acceso de uso" NO se reconecta nunca: ahí la lectura es
                 // local y un null solo significa "no hubo eventos en la ventana
                 // de 10 s" (la app sensible lleva un rato quieta en primer
-                // plano), no que la conexión esté muerta — de hecho ni se usa
+                // plano), no que la conexión esté muerta; de hecho ni se usa
                 // ADB para leer. Reconectar ahí era lo que hacía re-aparecer la
                 // notificación de "Depuración inalámbrica" del sistema cada
                 // pocos segundos mientras la app sensible estaba abierta.
