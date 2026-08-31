@@ -37,10 +37,43 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8: sin minificar, el cliente ADB embebido (libadb + BouncyCastle
+            // + sun-security) dejaba 27,8 MB de dex, casi todo codigo que nadie
+            // alcanza. Lo que R8 no puede ver (reflexion, JNI y el proceso
+            // aparte de Shizuku) esta cubierto en proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            ndk {
+                // Video Boost solo existe en los Pixel Pro (8 Pro en adelante) y
+                // todos son arm64. Las otras tres ABIs eran 6 MB de
+                // libconscrypt_jni.so que ningun dispositivo compatible carga.
+                // El emulador x86_64 sigue sirviendo: debug empaqueta todas.
+                abiFilters += "arm64-v8a"
+            }
             if (keystoreProps.isNotEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
             }
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                // Tablas de la criptografia post-cuantica de BouncyCastle
+                // (1,2 MB solo los .bin.properties de picnic). Del proveedor
+                // aqui solo se usa HKDF para el pairing SPAKE2, asi que no hay
+                // ninguna ruta que las lea. Son recursos Java, no clases: R8 no
+                // los toca y hay que excluirlos al empaquetar.
+                "org/bouncycastle/pqc/**",
+                // Mensajes traducidos del PKIXCertPathReviewer, que tampoco se
+                // usa (la validacion del certificado del daemon la hace el
+                // handshake TLS de conscrypt).
+                "org/bouncycastle/x509/CertPathReviewerMessages_*.properties",
+            )
         }
     }
 
