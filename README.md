@@ -257,6 +257,23 @@ not pretend otherwise with a switch that would do nothing.
 - A Pixel Pro model with Video Boost (Pixel 8 Pro and newer Pro models).
 - Recent Pixel Camera (10.x line, Android 16).
 
+### Which devices this is actually verified on
+
+Every release is tested end to end on a **Pixel 10 Pro XL**, which is the only
+device I own. The app is built to survive Pixel Camera changes (it looks for
+the Video Boost control by resource id and by localized label rather than by
+screen position), and there is no reason to expect it to behave differently on
+a Pixel 8 Pro or 9 Pro, but I cannot claim to have watched it happen there.
+
+**The Pixel 11 series is not verified.** It shipped in August 2026 with a newer
+Pixel Camera and Video Boost up to 8K, and I have no access to one. It may work
+unchanged, or a Feature Drop may have moved the control. If you have a Pixel 11
+Pro, telling me either way is genuinely the most useful thing you can do for
+this project: open an issue with your model, your Pixel Camera version
+(*Settings, Apps, Pixel Camera*), your system language, and whether Video Boost
+turned on by itself. That is what lets me fix it, and it is worth more to me
+than a donation.
+
 ## Heads-up: data & storage
 
 Video Boost processes video in the cloud through Google Photos: each boosted
