@@ -1,0 +1,25 @@
+La cámara del Pixel apaga el Video mejorado (Video Boost) cada vez que cierras la aplicación, así que nunca se queda activado. Google lo hizo persistente durante unas semanas en febrero de 2025 y después lo revirtió. No existe ningún ajuste, flag ni preferencia que lo fije sin root.
+
+Video Boost AO lo vuelve a activar por ti, automáticamente, cada vez que abres la cámara en modo video.
+
+Un servicio de accesibilidad detecta que la cámara del Pixel está en primer plano, abre el panel de ajustes de video, lee el estado real del botón de Video mejorado y lo enciende solo si estaba apagado. Nunca pulsa a ciegas, y si ya estaba encendido no hace nada. Después cierra el panel y deja el visor exactamente como lo encontró. Todo el proceso tarda alrededor de medio segundo.
+
+FUNCIONES
+
+* Reactiva el Video mejorado en cada sesión de cámara, que es justo lo que la cámara del Pixel se niega a recordar.
+* Dos modos de activación: siempre activo, que funciona en cualquier Pixel Pro sin permisos especiales, o solo cuando se abre la cámara, que mantiene el servicio de accesibilidad apagado el resto del tiempo.
+* 74 idiomas. Las etiquetas de la interfaz que busca no están adivinadas, se extraen directamente del APK real de la cámara del Pixel.
+* Compatible con idiomas de derecha a izquierda. En árabe, hebreo, farsi y urdu los botones están invertidos, y el servicio elige el correcto.
+* Idempotente y seguro. Lee el estado del botón antes de actuar, nunca apaga el Video mejorado, y se rinde en silencio si la interfaz de la cámara cambió.
+* Margen de espera para aplicaciones sensibles. Al salir de tu aplicación bancaria espera entre 0 y 10 minutos configurables antes de volver a activarse, para que salir cinco segundos y volver no dispare el bloqueo antifraude del banco.
+* Control de notificaciones, con un interruptor por aviso y un silenciador general.
+
+PRIVACIDAD
+
+Código abierto completo con licencia MIT. Sin anuncios, sin analítica, sin cuentas y sin rastreo. La aplicación no accede a la red salvo para consultar si hay una versión nueva en GitHub y, si tú lo activas, para la conexión ADB local con tu propio teléfono.
+
+Todo lo que hace y todo lo que nunca hace está documentado dentro de la aplicación, en la pantalla Acerca de, privacidad y código fuente, que puedes leer antes de conceder ningún permiso.
+
+REQUISITOS
+
+Un Pixel que tenga Video mejorado, es decir Pixel 8 Pro o posterior. Android 13 o superior.

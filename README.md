@@ -486,13 +486,29 @@ Release builds differ from debug in two ways worth knowing:
 ## Distribution notes
 
 **Not on Google Play, on purpose.** This app uses an `AccessibilityService`
-for a non-accessibility purpose (automating another app's UI), which Play's
-policy requires declaring and effectively prohibits, with account-level
-enforcement risk. Distribution is via GitHub Releases (this repo), Obtainium,
-and F-Droid-compatible repos that ship the developer-signed APK. The friction
-this causes at install time (Play Protect, restricted settings) is covered in
+for a non-accessibility purpose, automating another app's UI. Play's current
+policy does not forbid that outright: it permits the API "for a wide range of
+applications" and explicitly allows deterministic, rule-based automation that
+follows a static, human-defined script, which is exactly what this app does.
+What it does require is a permission declaration, a prominent in-app
+disclosure, and giving up the `isAccessibilityTool` flag, since automation
+tools do not qualify as accessibility tools. The reason to stay off Play is
+therefore not the written rule but the discretionary one: this app exists to
+undo a product decision in Google's own camera, and review outcomes there come
+with account-level enforcement risk and no advance warning.
+
+Distribution is via GitHub Releases (this repo), Obtainium, and
+F-Droid-compatible repos that ship the developer-signed APK. The friction this
+causes at install time (Play Protect, restricted settings) is covered in
 [Permissions, explained](#permissions-explained) and the
 [tutorial](docs/TUTORIAL.md).
+
+Note that giving up `isAccessibilityTool` has a consequence beyond Play: on
+Android 17, turning on **Advanced Protection** revokes accessibility access
+from every app that does not declare that flag, and the permission cannot be
+granted again by hand. That affects this app the same way it affects Tasker
+and MacroDroid. Advanced Protection is opt-in, so it only applies if you turn
+it on.
 
 ## Support
 
@@ -501,6 +517,22 @@ way. If it saves you a daily tap, you can support development (it helps keep
 the app working after every Pixel Camera Feature Drop):
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/agusromero)
+
+## Also searched as
+
+People run into this problem long before they know an app exists for it, and
+they describe it in their own words. If you got here from a search, one of
+these was probably it:
+
+*Video Boost won't stay turned on · Video Boost turns off every time I open
+the camera · Video Boost keeps turning off · Video Boost automatically
+disables itself · Video Boost not staying on · Video Boost resets after
+closing the app · keep Video Boost enabled · always-on Video Boost ·
+persistent Video Boost · Video Boost has to be turned on for every recording*
+
+In Spanish, Google calls the feature **Video mejorado**, so: *el Video mejorado
+se desactiva al salir de la cámara · hay que activar el Video mejorado cada vez
+· dejar el Video mejorado siempre activado · el Video Boost se apaga solo.*
 
 ## License
 

@@ -1,0 +1,5 @@
+On-demand mode: the accessibility service stays off unless Pixel Camera is open. Needs usage access and WRITE_SECURE_SETTINGS, granted once via ADB or Shizuku.
+
+Redesigned main screen with progressive disclosure, plus a new About, privacy and source code screen.
+
+The app is now much smaller: 5.4 MB instead of 38.2 MB.

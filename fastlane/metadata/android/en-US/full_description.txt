@@ -1,0 +1,25 @@
+Pixel Camera turns Video Boost off every time you close the app, so it never stays on. Google briefly made it persistent in February 2025 and then reverted it. There is no flag, intent or preference that can pin it without root.
+
+Video Boost AO re-enables it for you, automatically, every time you open the camera in video mode.
+
+An accessibility service detects Pixel Camera in the foreground, opens the Video Settings panel, reads the actual state of the Video Boost toggle and turns it on only if it is off. It never taps blindly, and if Video Boost is already on it does nothing. Then it closes the panel and leaves the viewfinder exactly as it found it. The whole sequence takes about half a second.
+
+FEATURES
+
+* Re-enables Video Boost on every camera session, the thing Pixel Camera refuses to remember.
+* Two activation modes: always on, which works on any Pixel Pro with no special permissions, or only when the camera opens, which keeps the accessibility service switched off the rest of the time.
+* 74 languages. The UI labels it looks for are not guessed, they are extracted directly from the real Pixel Camera APK.
+* Right-to-left aware. In Arabic, Hebrew, Farsi and Urdu the on and off buttons are mirrored, and the service picks the correct one.
+* Idempotent and safe. It reads the toggle state before acting, never turns Video Boost off, and gives up quietly if the camera UI changed.
+* Grace period for sensitive apps. After you leave your banking app it waits a configurable 0 to 10 minutes before turning itself back on, so a quick trip out and back does not trip the bank anti-fraud check.
+* Notification controls, with a switch per notice and a silence-everything master.
+
+PRIVACY
+
+Fully open source under the MIT license. No ads, no analytics, no accounts, no tracking. The app has no network access beyond checking GitHub for a new release, and, if you enable it, a local ADB connection to your own device.
+
+Everything it does and everything it never does is documented inside the app, under About, privacy and source code, readable before you grant any permission.
+
+REQUIREMENTS
+
+A Pixel phone that actually has Video Boost, which means Pixel 8 Pro or newer. Android 13 or later.

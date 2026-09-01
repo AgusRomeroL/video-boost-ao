@@ -1,0 +1,5 @@
+Modo bajo demanda: el servicio de accesibilidad permanece apagado salvo cuando la cámara está abierta. Necesita acceso de uso y WRITE_SECURE_SETTINGS, concedidos una sola vez por ADB o Shizuku.
+
+Pantalla principal rediseñada con revelación progresiva, y nueva pantalla Acerca de, privacidad y código fuente.
+
+La aplicación ocupa mucho menos: 5,4 MB en lugar de 38,2 MB.
