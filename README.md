@@ -473,6 +473,16 @@ keyAlias=...
 keyPassword=...
 ```
 
+Release builds differ from debug in two ways worth knowing:
+
+- **They are shrunk with R8**, so `app/proguard-rules.pro` is load-bearing.
+  The embedded ADB client and the Shizuku user service are reached by
+  reflection, by JNI, or from another process, so a missing keep rule breaks
+  full-auto at runtime instead of failing at compile time.
+- **They ship arm64-v8a only**, since every Pixel with Video Boost is arm64.
+  Debug builds still package all four ABIs, so the x86_64 emulator keeps
+  working there.
+
 ## Distribution notes
 
 **Not on Google Play, on purpose.** This app uses an `AccessibilityService`
