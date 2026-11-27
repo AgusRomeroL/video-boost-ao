@@ -25,3 +25,6 @@ pixel_*.html
 
 # Internal guidance (kept local, not published)
 CLAUDE.md
+
+# Caché de sesiones del compilador de Kotlin (Kotlin 2.x)
+.kotlin/
