@@ -114,10 +114,41 @@ object AccessibilityGuard {
     }
 
     /**
+     * ¿La lista de servicios la vació el sistema, o la vació el usuario?
+     *
+     * Distinguirlo es lo que separa "reparar" de "pelearse con el usuario", y
+     * hay una firma clara:
+     * - Un `UiAutomation` ajeno **borra la lista entera** y deja
+     *   `accessibility_enabled` en 1. Nadie apagó nada a mano: el sistema la
+     *   vació de paso.
+     * - Cuando el usuario apaga el último servicio desde Ajustes, Android pone
+     *   además `accessibility_enabled` en 0 (es lo mismo que hace esta app en
+     *   [SecureSettings.disableAccessibilityService]).
+     * - Y si el usuario apaga SOLO este servicio teniendo otros, la lista queda
+     *   con los otros dentro: no está vacía.
+     *
+     * Así que solo el primer caso se repara. En los otros dos la decisión es
+     * del usuario y la app no tiene nada que opinar, aunque técnicamente pueda
+     * escribir el setting.
+     */
+    fun wipedByHijack(context: Context): Boolean {
+        val list = android.provider.Settings.Secure.getString(
+            context.contentResolver,
+            android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ).orEmpty()
+        if (list.split(':').any { it.isNotBlank() }) return false
+        return android.provider.Settings.Secure.getInt(
+            context.contentResolver,
+            android.provider.Settings.Secure.ACCESSIBILITY_ENABLED,
+            0,
+        ) == 1
+    }
+
+    /**
      * Repara el modo siempre activo: si el sistema vació la lista y la app
-     * puede escribirla, vuelve a meterse. Pensado para los momentos en que algo
-     * de la app corre con el servicio caído (abrir la pantalla principal, el
-     * arranque del teléfono), que es cuando se puede notar el daño.
+     * puede escribirla, vuelve a meterse. Lo llaman los momentos en que algo de
+     * la app corre con el servicio caído: abrir la pantalla principal, el
+     * arranque del teléfono y [AccessibilityRepairJob].
      *
      * En modo bajo demanda no hace nada: ahí el servicio está apagado casi
      * siempre a propósito y de reactivarlo se encarga [CameraWatchService].
@@ -126,7 +157,7 @@ object AccessibilityGuard {
         if (!Prefs.featureEnabled(context)) return false
         if (Capabilities.onDemandMode(context)) return false
         if (!Prefs.serviceEverEnabled(context)) return false
-        if (isListed(context)) return false
+        if (!wipedByHijack(context)) return false
         if (!Capabilities.canWriteSecureSettings(context)) return false
         val repaired = SecureSettings.enableOwnAccessibilityService(context)
         if (repaired) {

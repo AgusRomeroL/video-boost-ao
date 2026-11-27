@@ -373,6 +373,10 @@ class VideoBoostService : AccessibilityService() {
     override fun onDestroy() {
         if (instance === this) instance = null
         handler.removeCallbacks(attemptRunnable)
+        // En siempre activo este servicio es lo único que corre: si murió,
+        // nadie queda para notar que fue un UiAutomation ajeno quien lo tumbó.
+        // El job comprueba más tarde y repara solo si esa es la causa.
+        AccessibilityRepairJob.schedule(this)
         super.onDestroy()
     }
 }

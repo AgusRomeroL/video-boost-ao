@@ -113,6 +113,12 @@
                 android:value="Discovers the on-device wireless-debugging pairing service and prompts the user for the pairing code via a reply notification." />
         </service>
 
+        <!-- Rescate del modo siempre activo si otra app tumba la accesibilidad. -->
+        <service
+            android:name=".AccessibilityRepairJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <!-- Shizuku: proveedor requerido por el SDK para el modo full-auto. -->
         <provider
             android:name="rikka.shizuku.ShizukuProvider"

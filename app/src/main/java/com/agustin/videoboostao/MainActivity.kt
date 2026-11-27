@@ -61,6 +61,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -77,6 +78,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
@@ -172,7 +174,17 @@ private fun MainScreen(onNavigate: (Screen) -> Unit) {
     var fullAutoAdb by remember { mutableStateOf(Prefs.fullAutoAdb(context)) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
-    var blocked by remember { mutableStateOf(AccessibilityGuard.looksSuppressed(context)) }
+    var blocked by remember { mutableStateOf(false) }
+    var blockedProbe by remember { mutableIntStateOf(0) }
+
+    // El bloqueo no se mira al instante: tras un arranque en frío el sistema
+    // tarda un momento en enlazar el servicio, y preguntar antes de ese margen
+    // diría "bloqueado" cuando solo está tardando.
+    LaunchedEffect(blockedProbe) {
+        blocked = false
+        delay(AccessibilityGuard.BIND_GRACE_MS)
+        blocked = AccessibilityGuard.looksSuppressed(context)
+    }
 
     LifecycleResumeEffect(Unit) {
         // Si una herramienta de automatización vació la lista de servicios de
@@ -180,7 +192,7 @@ private fun MainScreen(onNavigate: (Screen) -> Unit) {
         // que el usuario viene a ver por qué dejó de funcionar.
         AccessibilityGuard.repairIfNeeded(context)
         serviceEnabled = isAccessibilityServiceEnabled(context)
-        blocked = AccessibilityGuard.looksSuppressed(context)
+        blockedProbe++
         mode = Prefs.activationMode(context)
         canOnDemand = Capabilities.canRunOnDemand(context)
         featureEnabled = Prefs.featureEnabled(context)
