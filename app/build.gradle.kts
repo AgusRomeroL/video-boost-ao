@@ -20,8 +20,8 @@ android {
         applicationId = "com.agustin.videoboostao"
         minSdk = 33
         targetSdk = 36
-        versionCode = 15
-        versionName = "2.13"
+        versionCode = 16
+        versionName = "2.14"
     }
 
     signingConfigs {

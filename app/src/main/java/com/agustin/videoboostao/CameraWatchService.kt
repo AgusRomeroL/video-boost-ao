@@ -92,6 +92,7 @@ class CameraWatchService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private val pollRunnable = Runnable { poll() }
     private val disableRunnable = Runnable { disableNow("gracia cumplida") }
+    private val confirmRunnable = Runnable { confirmBound() }
 
     private var screenOn = true
     private var awayCount = 0
@@ -212,7 +213,21 @@ class CameraWatchService : Service() {
             fg == Selectors.CAMERA_PACKAGE -> {
                 awayCount = 0
                 cancelPendingDisable()
-                if (!on) enableNow("cámara en primer plano")
+                when {
+                    !on -> enableNow("cámara en primer plano")
+                    // Listado y sin enlazar: alguien tiene tomado el
+                    // UiAutomation del sistema. Re-escribir cada tanto es lo
+                    // que hace que la app reviva sola en cuanto esa
+                    // herramienta se cierre (ver [AccessibilityGuard]).
+                    !AccessibilityGuard.isRunning() -> {
+                        if (AccessibilityGuard.nudge(this)) {
+                            Log.d(TAG, "Watch: encendido pero sin enlazar; reintento")
+                            // Mismo margen que tras un encendido: si el empujón
+                            // tampoco lo revive, hay que decírselo al usuario.
+                            scheduleBindCheck()
+                        }
+                    }
+                }
             }
 
             on -> {
@@ -243,12 +258,34 @@ class CameraWatchService : Service() {
         if (SecureSettings.enableOwnAccessibilityService(this)) {
             Log.i(TAG, "Watch: servicio encendido ($why)")
             awayCount = 0
+            // La escritura dice que el setting quedó puesto, no que el sistema
+            // haya enlazado el servicio. La diferencia importa: con un
+            // UiAutomation ajeno registrado, el setting se escribe y el
+            // servicio nunca arranca.
+            scheduleBindCheck()
         } else {
             // Sin el permiso el modo no se sostiene. La preferencia no se toca
             // (el permiso puede volver): [Capabilities.activationMode] ya
             // degrada sola a "siempre activo" y la UI lo explica.
             Log.w(TAG, "Watch: no se pudo encender el servicio; falta WRITE_SECURE_SETTINGS")
         }
+    }
+
+    private fun scheduleBindCheck() {
+        handler.removeCallbacks(confirmRunnable)
+        handler.postDelayed(confirmRunnable, AccessibilityGuard.BIND_GRACE_MS)
+    }
+
+    /**
+     * Pasado el margen de bind: ¿el servicio está vivo o solo apuntado?
+     *
+     * Si entretanto el servicio ya se apagó (la cámara se fue y la gracia se
+     * cumplió), no hay nada que confirmar: ese apagado es el funcionamiento
+     * normal del modo, no un bloqueo.
+     */
+    private fun confirmBound() {
+        if (!serviceOn()) return
+        AccessibilityGuard.reportBindOutcome(this, AccessibilityGuard.isRunning())
     }
 
     private fun scheduleDisable() {
@@ -277,6 +314,7 @@ class CameraWatchService : Service() {
      */
     private fun disableNow(why: String) {
         handler.removeCallbacks(disableRunnable)
+        handler.removeCallbacks(confirmRunnable)
         awayCount = 0
         if (!serviceOn()) return
         if (SecureSettings.disableOwnAccessibilityService(this)) {
@@ -292,6 +330,7 @@ class CameraWatchService : Service() {
         running = false
         handler.removeCallbacks(pollRunnable)
         handler.removeCallbacks(disableRunnable)
+        handler.removeCallbacks(confirmRunnable)
         try {
             cameraManager?.unregisterAvailabilityCallback(cameraCallback)
         } catch (_: Throwable) {

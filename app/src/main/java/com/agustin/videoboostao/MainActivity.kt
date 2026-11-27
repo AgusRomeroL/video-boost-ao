@@ -172,8 +172,15 @@ private fun MainScreen(onNavigate: (Screen) -> Unit) {
     var fullAutoAdb by remember { mutableStateOf(Prefs.fullAutoAdb(context)) }
     var update by remember { mutableStateOf<UpdateChecker.Update?>(null) }
 
+    var blocked by remember { mutableStateOf(AccessibilityGuard.looksSuppressed(context)) }
+
     LifecycleResumeEffect(Unit) {
+        // Si una herramienta de automatización vació la lista de servicios de
+        // accesibilidad, volver a entrar a la app la repara: es el momento en
+        // que el usuario viene a ver por qué dejó de funcionar.
+        AccessibilityGuard.repairIfNeeded(context)
         serviceEnabled = isAccessibilityServiceEnabled(context)
+        blocked = AccessibilityGuard.looksSuppressed(context)
         mode = Prefs.activationMode(context)
         canOnDemand = Capabilities.canRunOnDemand(context)
         featureEnabled = Prefs.featureEnabled(context)
@@ -215,6 +222,7 @@ private fun MainScreen(onNavigate: (Screen) -> Unit) {
                 featureEnabled = featureEnabled,
                 onDemand = onDemand,
                 onDemandPending = onDemandPending,
+                blocked = blocked,
                 available = ready,
                 onToggle = { enabled ->
                     featureEnabled = enabled
@@ -364,11 +372,21 @@ private fun HeroCard(
     featureEnabled: Boolean,
     onDemand: Boolean,
     onDemandPending: Boolean,
+    blocked: Boolean,
     available: Boolean,
     onToggle: (Boolean) -> Unit,
     onFixMode: () -> Unit,
 ) {
     val (title, body, container, onContainer) = when {
+        // Antes que nada: con un UiAutomation ajeno registrado el servicio
+        // figura encendido y no corre. Decir "activo" ahí sería mentir, y es
+        // justo cuando el usuario viene a ver qué pasa.
+        blocked && featureEnabled -> Quad(
+            stringResource(R.string.status_blocked_title),
+            stringResource(R.string.status_blocked_body),
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer,
+        )
         // Bajo demanda elegido pero sin los permisos: no está roto, está a
         // medio configurar, y hasta entonces corre en modo siempre activo.
         onDemandPending -> Quad(

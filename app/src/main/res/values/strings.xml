@@ -11,6 +11,8 @@
     <string name="status_paused_body">The service is ready, but automation is paused. Flip the switch to resume.</string>
     <string name="status_setup_title">Setup needed</string>
     <string name="status_setup_body">Enable the accessibility service to let the app flip the Video Boost toggle for you.</string>
+    <string name="status_blocked_title">Blocked by another app</string>
+    <string name="status_blocked_body">Another app is holding Android\'s UI automation, and that switches off every accessibility service on the phone, this one included. It is usually a testing or remote control tool. Close it and Video Boost comes back by itself.</string>
 
     <!-- Switch maestro -->
     <string name="master_switch_title">Keep Video Boost always on</string>
@@ -224,6 +226,8 @@
     <!-- Optional activation confirmation -->
     <string name="notif_channel_activated_name">Video Boost activated</string>
     <string name="notif_channel_activated_desc">Optional confirmation once Video Boost is on in the Camera.</string>
+    <string name="notif_a11y_blocked_title">Video Boost can\'t run</string>
+    <string name="notif_a11y_blocked_text">Another app is holding Android\'s UI automation, so the phone has every accessibility service switched off, this one included. Close that app (usually a testing or remote control tool) and Video Boost turns itself back on.</string>
     <string name="notif_activated_title">Video Boost is on</string>
     <string name="notif_activated_text">Turned on for this Camera session.</string>
 

@@ -14,6 +14,7 @@ object Prefs {
     private const val KEY_FEATURE_ENABLED = "feature_enabled"
     private const val KEY_AUTO_DISABLE_BANKS = "auto_disable_banks"
     private const val KEY_DISABLED_BY_BANK = "disabled_by_bank"
+    private const val KEY_SERVICE_EVER_ENABLED = "service_ever_enabled"
     private const val KEY_SENSITIVE_USER_APPS = "sensitive_user_apps"
     private const val KEY_SENSITIVE_EXCLUDED_APPS = "sensitive_excluded_apps"
     private const val KEY_FULL_AUTO_SHIZUKU = "full_auto_shizuku"
@@ -61,6 +62,23 @@ object Prefs {
 
     fun setDisabledByBank(context: Context, value: Boolean) {
         prefs(context).edit().putBoolean(KEY_DISABLED_BY_BANK, value).apply()
+    }
+
+    /**
+     * ¿El servicio de accesibilidad llegó a correr alguna vez? Lo marca el
+     * propio servicio al enlazarse, así que equivale a "el usuario ya dio el
+     * permiso en Ajustes".
+     *
+     * [AccessibilityGuard.repairIfNeeded] lo exige antes de volver a meterse en
+     * `enabled_accessibility_services`: tener `WRITE_SECURE_SETTINGS` no es
+     * permiso para encenderle a nadie un servicio que nunca activó.
+     */
+    fun serviceEverEnabled(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_SERVICE_EVER_ENABLED, false)
+
+    fun setServiceEverEnabled(context: Context) {
+        if (serviceEverEnabled(context)) return
+        prefs(context).edit().putBoolean(KEY_SERVICE_EVER_ENABLED, true).apply()
     }
 
     /** Packages que el usuario marcó como "app sensible" (además de la lista integrada). */

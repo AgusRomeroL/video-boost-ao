@@ -22,6 +22,12 @@ class BootReceiver : BroadcastReceiver() {
             -> Unit
             else -> return
         }
+        // En "siempre activo" el sistema revive el servicio solo... salvo que
+        // una herramienta de automatización haya vaciado la lista de servicios
+        // de accesibilidad antes del reinicio, y entonces no hay nada que
+        // revivir. Repararlo acá es lo que evita que el usuario se encuentre la
+        // app muerta sin saber por qué ([AccessibilityGuard]).
+        AccessibilityGuard.repairIfNeeded(context)
         if (!Capabilities.onDemandMode(context) || !Prefs.featureEnabled(context)) return
         try {
             CameraWatchService.start(context)

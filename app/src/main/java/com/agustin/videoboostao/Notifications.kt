@@ -55,6 +55,7 @@ object Notifications {
     private const val NOTIF_ID_ADB_PAIRING_DONE = 1005
     const val NOTIF_ID_WATCH = 1007
     private const val NOTIF_ID_ACTIVATED = 1008
+    private const val NOTIF_ID_A11Y_BLOCKED = 1009
 
     /**
      * Ciclo "la app sensible se cerró": cuenta atrás -> "Video Boost volvió".
@@ -514,6 +515,33 @@ object Notifications {
 
     fun cancelActivated(context: Context) {
         NotificationManagerCompat.from(context).cancel(NOTIF_ID_ACTIVATED)
+    }
+
+    /**
+     * Otra app tiene tomado el `UiAutomation` del sistema y eso apaga todos los
+     * servicios de accesibilidad del teléfono (ver [AccessibilityGuard]).
+     *
+     * Va por el canal de avisos normal y no se filtra por ninguna preferencia de
+     * notificación: no es un recordatorio opcional del funcionamiento normal,
+     * es la única forma de que el usuario sepa por qué la app parece encendida y
+     * no hace nada. [AccessibilityGuard] ya se encarga de que salga una sola vez
+     * por episodio.
+     */
+    fun showAccessibilityBlocked(context: Context) {
+        ensureChannels(context)
+        notify(
+            context,
+            NOTIF_ID_A11Y_BLOCKED,
+            alert(
+                context,
+                R.string.notif_a11y_blocked_title,
+                context.getString(R.string.notif_a11y_blocked_text),
+            ),
+        )
+    }
+
+    fun cancelAccessibilityBlocked(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIF_ID_A11Y_BLOCKED)
     }
 
     /**

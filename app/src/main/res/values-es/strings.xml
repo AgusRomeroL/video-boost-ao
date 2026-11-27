@@ -11,6 +11,8 @@
     <string name="status_paused_body">El servicio está listo, pero la automatización está pausada. Activá el interruptor para reanudar.</string>
     <string name="status_setup_title">Falta configurar</string>
     <string name="status_setup_body">Habilitá el servicio de accesibilidad para que la app pueda encender Video Boost por vos.</string>
+    <string name="status_blocked_title">Bloqueado por otra app</string>
+    <string name="status_blocked_body">Otra app tiene tomada la automatización de interfaz de Android, y eso apaga todos los servicios de accesibilidad del teléfono, este incluido. Suele ser una herramienta de pruebas o de control remoto. Cerrala y Video Boost vuelve solo.</string>
 
     <!-- Switch maestro -->
     <string name="master_switch_title">Mantener Video Boost siempre activo</string>
@@ -224,6 +226,8 @@
     <!-- Confirmación opcional de activación -->
     <string name="notif_channel_activated_name">Video Boost activado</string>
     <string name="notif_channel_activated_desc">Confirmación opcional cuando Video Boost queda activo en la Cámara.</string>
+    <string name="notif_a11y_blocked_title">Video Boost no puede funcionar</string>
+    <string name="notif_a11y_blocked_text">Otra app tiene tomada la automatización de interfaz de Android, así que el teléfono tiene apagados todos los servicios de accesibilidad, este incluido. Cerrá esa app (suele ser una herramienta de pruebas o de control remoto) y Video Boost se vuelve a encender solo.</string>
     <string name="notif_activated_title">Video Boost está activo</string>
     <string name="notif_activated_text">Se activó para esta sesión de cámara.</string>
 

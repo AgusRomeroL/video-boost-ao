@@ -55,6 +55,11 @@ class VideoBoostService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        // Enlazados de verdad: cierra cualquier aviso de "la accesibilidad está
+        // bloqueada" y deja constancia de que el usuario ya dio el permiso, que
+        // es lo que habilita la reparación automática ([AccessibilityGuard]).
+        Prefs.setServiceEverEnabled(this)
+        AccessibilityGuard.reportBindOutcome(this, bound = true)
         // En modo bajo demanda, quien nos encendió fue el vigilante y ya está
         // vivo; salvo que el teléfono se haya reiniciado con la cámara abierta,
         // que nos revive a nosotros sin él. Arrancarlo desde acá cubre ese caso
